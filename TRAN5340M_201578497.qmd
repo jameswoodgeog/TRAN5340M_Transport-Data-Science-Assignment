@@ -52,12 +52,15 @@ library(dplyr)
 library(ggplot2)
 library(ggspatial)
 library(tmap)
+library(tmaptools)
+library(OpenStreetMap)
 library(units)
 library(geodist)
 library(tidyr)
 library(mapview)
 library(leaflet)
 library(leaflet.providers)
+library(basemaps)
 ```
 
 # Introduction
@@ -828,31 +831,36 @@ from_to <- merge(from_to, circuity, by = "OA21CD")
 ```
 
 
+```{r}
+bb <- readRDS("Data/y_lad_sf.RDS")
+bb <- sttrans
+```
 
 
 ```{r}
 # Plot the oa_circuity filling the polygons with graduated coolor scheme from the circuity column
-tm_shape(oa_circuity) +
-  tm_fill("mean_circuity", palette = "viridis") +
-  tm_basemap(server = "OpenStreetMap")
-
-ggplot() +
-  geom_sf(data = oa_circuity, aes(fill = mean_circuity)) +
-  scale_fill_viridis_c() +
-  theme_void()
-
-tmap_mode("view")
-qtm(oa_circuity,
-  fill = "mean_circuity",
-  palette = "cividis"
-)
-
-# Plot the polygons and add a basemap
-mapview(oa_circuity, zcol = "mean_circuity")
-
-# hope this works!
+# Set tmap mode to plot
+# tmap_mode("plot")
+# 
+# # Load the OpenStreetMap tiles
+# tiles <- read_osm(bb)
+# 
+# # Plot the thematic map with basemap
+# tmap_mode("view")
+# tm_shape(oa_circuity) +
+#   tm_borders() +
+#   tm_fill("mean_circuity",
+#           palette = "viridis",
+#           alpha = 0.65) +
+#   tm_basemap("OpenStreetMap")
 ```
 
+```{r}
+ggplot() +
+  annotation_map_tile("osm", zoomin = -1) +
+  geom_sf(data = oa_circuity, aes(fill = mean_circuity), color = NA) +
+  scale_fill_viridis_c(alpha = 0.75)
+```
 
 
 
