@@ -1,0 +1,899 @@
+---
+title: "Using circuity analysis to explore pedestrian access to healthcare services in York"
+
+format:
+  pdf:
+    pdf-engine: xelatex
+    toc: true
+    lof: true
+    lot: true
+    number-sections: true
+    header-includes:
+      - \usepackage{fancyhdr}
+      - \usepackage{lastpage}
+      - \pagestyle{fancy}
+      - \thispagestyle{fancy}
+      - \fancyhead[R]{Student ID| 201578497}
+      - \fancyhead[L]{TRAN5340M | Transport Data Science}
+      - \renewcommand{\headrulewidth}{0.02pt}
+      
+      - \fancypagestyle{plain}{\fancyhead[R]{Student ID| 201578497}\fancyhead[L]{TRAN5340M | Transport Data Science}\fancyfoot[C]{Page \thepage\ of \pageref{LastPage}}}
+      
+      - \fancyfoot[C]{Page \thepage\ of \pageref{LastPage}}
+
+fontsize: 11pt
+mainfont: Calibri
+
+#author: "Student 201578497"
+
+bibliography: tds_refs.bib
+csl: "UoL_Harvard.csl"
+---
+
+```{=html}
+<style>
+figcaption {
+    text-align: center;
+}
+</style>
+```
+```{r, echo=FALSE}
+assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
+```
+
+```{r, echo=FALSE, eval=TRUE, include=FALSE}
+library(gh)
+library(sys)
+library(opentripplanner)
+library(dodgr)
+library(sf)
+library(osmdata)
+library(dplyr)
+library(ggplot2)
+library(ggspatial)
+library(tmap)
+library(units)
+library(geodist)
+library(tidyr)
+library(mapview)
+library(leaflet)
+library(leaflet.providers)
+```
+
+# Introduction
+
+Carlos Moreno first proposed the 15-minute city concept in 2016. The focus of the concept is that access to essential services and amenities, such as healthcare and greenspace should be within a 15-minute walk or cycle from a persons home [@morenoIntroducing15MinuteCity2021]. The COVID-19 pandemic then highlighted the importance of local access to essential services, because lockdowns and other restrictions on movement limited the ability to travel beyond ones immediate neighbourhood. The 15-minute city concept has gained traction more recently within the disciplines of urban planning and sustainable development. It also provided a new perspective on "chrono-urbanism", in which there is an inversely proportional relationship between peoples quality of life and the time people invest in transportation (which is especially true in the use of motor vehicles) [@loganXminuteCityMeasuring2022].
+
+Active travel modes such as walking an cycling are better for peoples health outcomes by enabling better fitness levels and reducing inactivity. Benefits to the economy can be measured through healthier, and fewer people needing the NHS, therefore saving it money. The environment benfits through increased active travel because it is emission-free, which reduces particulate matter, increasing air quality in towns and cities [@SecondCyclingWalking2023].
+
+However, time is an important factor when it comes to peoples decisions around mode choice, and the study by @ralphItReallyToo2020 highlights this very well. Pertinent to the study in this report, it was discovered that people were more likely to overestimate the length of the route, and therefore the time it would take to walk/cycle, along routes where there were barriers to overcome and many turns to take. Other reasons for choosing against walking in their study were fears of crime, and getting lost, and importantly in the context of this study, carrying something heavy. They found that people were more likely to lower their estimations with experience and familiarity of the route(s).
+
+Through urban design, it should be possible to increase active travel, and reduce (private) vehicle use, but in order to achieve these goals, understanding the current situation in terms of accessibility is important. This study looks to contribute to this understanding, using the City of York Local Authority District (York LAD), which includes the City of York and the surrounding villages and by analysing peoples access to essential services (healthcare provision in this case), though circuity of walking route measurements.
+
+# Scope
+
+The primary aim of this study is to analyse ease of pedestrian access to basic essential amenities. Access will be measured through defining a reasonable travel time based on 20 minutes average walking distance. Twenty minutes was chosen, because the average distance walked in around fifteen to twenty minutes is one mile [@britishheartfoundationWalksTreksFAQs].
+
+# Area of study
+
+The York LAD was chosen because the makeup of the city is such that surrounding the tightly packed walled center, lies less dense suburban areas, which in turn are surrounded at the periphery by smaller more isolated villages. This provides a variety of scenarios to analyse.
+
+```{r, echo=FALSE, eval=FALSE, include=FALSE, message=FALSE}
+# Load the York Local Authority District shapefile which represents the study area.
+# Use this polygon to clip the rest of the data to.
+# y_lad  <-  st_read("Data/York_LAD.shp")
+# saveRDS(y_lad, "Data/y_lad.RDS")
+```
+
+```{r, echo=FALSE, include=FALSE, eval=FALSE}
+# y_lad <- readRDS("Data/y_lad.RDS")
+```
+
+# Datasets
+
+# Pre-Processing
+
+# Understanding
+
+# Preparation
+
+# Exploratory data analysis
+
+# Methodology
+
+```{r, echo=FALSE, eval=FALSE, include=FALSE}
+# OpenTripPlanner Server setup
+#  This will only need to be done a single time
+#  SPecify the path to OTP
+path_data <- file.path("Data/OTP")
+
+# Get the OTP JAR file
+path_otp <- otp_dl_jar(path_data, cache = FALSE)
+
+# Build the graph
+log1 <- otp_build_graph(otp = path_otp,
+                        dir = path_data,
+                        memory = 6000)
+```
+
+```{r, echo=FALSE, include=FALSE, eval=FALSE}
+# Load the Graph from github so it does not need to be built from scratch
+system("gh release download v0 --repo jameswoodgeog/TRAN5340M_Transport-Data-Science")
+# Unzip the downloaded file to "Data/OTP"
+unzip("OTP.zip", exdir = "Data/")
+```
+
+```{r, echo=FALSE, eval=FALSE, warning=FALSE, include=FALSE}
+# # Take a look at the interactive map of the graph
+path_data <- file.path("Data/OTP")
+# Get the OTP JAR fil
+path_otp <- otp_dl_jar(path_data, cache = FALSE)
+log2 <- otp_setup(otp = path_otp, dir = path_data, open_browser = FALSE)
+remove(path_data)
+```
+
+```{r, echo=FALSE, eval=FALSE, warning=FALSE, include=FALSE}
+# Connect R to OTP
+# You should get something like the following if it all works
+# Router http://localhost:8080/otp/routers/default exists
+otpcon <- otp_connect(timezone = "Europe/London")
+```
+
+```{r, echo=FALSE, include=FALSE, eval=FALSE}
+# Get the points data from OSM (essential amenities and services)
+hcare_vars <- c("clinic", "dentist", "doctors", "hospital", "pharmacy")
+```
+
+```{r, echo=FALSE, eval=FALSE, include=FALSE}
+# # Convert the Local Authority boundary polygon to an sf object
+# y_lad_sf <- st_as_sf(y_lad)
+# y_lad_sf <- st_as_sf(y_lad)
+# # convert the CRS to match the OSM CRS
+# y_lad_sf <- st_transform(y_lad_sf, 4326)
+# Save the LAD file as RDS
+# saveRDS(y_lad_sf, "y_lad_sf.RDS")
+# remove(y_lad)
+```
+
+```{r, echo=FALSE, include=FALSE}
+y_lad_sf <- readRDS("Data/y_lad_sf.RDS")
+```
+
+```{r, echo=FALSE, include=FALSE, eval=FALSE}
+# Get the healthcare points/polygons data for the study area
+# Create the Overpass API query (q1) using the bounding box based on the York LA boundary
+hcare_query <- opq(bbox = st_bbox(y_lad_sf)) |>
+# ...for all the highways features from within the specified area
+    add_osm_feature(key = "amenity", value = hcare_vars)
+
+# Get all the OSM data
+yrk_hcare <- osmdata_sf(hcare_query)
+# Save the downloaded data...
+# saveRDS(yrk_hcare, file = "Data/yrk_hcare.RDS")
+```
+
+```{r, include=FALSE, echo=FALSE, eval=FALSE}
+# Load the saved data that has previously been downloaded
+yrk_hcare <- readRDS("Data/yrk_hcare.RDS")
+```
+
+```{r, echo=FALSE, include=FALSE, eval=FALSE}
+########### HEALTHCARE
+####### POINTS
+# Find which points intersect with the polygons. This creates a dataframe that contains a count
+int1 <- st_intersects(yrk_hcare$osm_points, yrk_hcare$osm_polygons)
+
+# Take the count data and return T or F if the number of intersections is == 0
+int1_bool <- lapply(int1, length)==0
+
+# Use the T or F data to find the points that are to be kept.
+hcare_points <- yrk_hcare$osm_points[int1_bool,]
+remove(int1)
+
+tmap_mode("view")
+qtm(hcare_points)
+tmap_mode("plot")
+# Now the points have been filtered out to leave only those points that do not intersect with a polygon, we need to convert the polygons into points, by calculating centroids for them. These centroids can then be added to the "hcare" points data.
+
+####### POLYGONS
+# Get the polygons from the main data
+polys <- yrk_hcare$osm_polygons
+
+# Find out if there are any polygons that intersect with each other
+int1 <- st_intersects(polys$geometry, polys$geometry)
+# Take the count data and return T or F if the number of intersections is == 0
+int1_bool <- lapply(int1, length) == 0
+
+# Add the centroids to the polys dataframe
+polys$centroid <- st_centroid(polys$geometry)
+
+####### MULTIPOLYGONS
+mpolys <- yrk_hcare$osm_multipolygons
+# Add the centroids to the polys dataframe
+mpolys$centroid <- st_centroid(mpolys$geometry)
+
+mpolys <- st_drop_geometry(mpolys)
+
+
+####### COMBINE THE REQUIRED COLUMNS FROM THE POINTS THAT ARE LEFT
+polys <- st_drop_geometry(polys)
+polys <- polys  |>  
+  rename(geometry = centroid)
+
+mpolys <- mpolys  |>  
+  rename(geometry = centroid)
+
+
+y_hcare_points <- bind_rows(
+  select(hcare_points, osm_id, amenity, geometry),
+  select(polys, osm_id, amenity, geometry),
+  select(mpolys, osm_id, amenity, geometry)
+)
+
+y_hcare_points <- y_hcare_points[!is.na(y_hcare_points$amenity), ]
+
+tmap_mode("view")
+qtm(y_hcare_points)
+tmap_mode("plot")
+# Save y_hcare_points
+
+# saveRDS(y_hcare_points, "Data/y_hcare_points.RDS")
+
+# remove(hcare_query, hcare_vars, int1, mpolys, polys,
+#        hcare_points, yrk_hcare, int1_bool)
+```
+
+```{r, echo=FALSE, eval=FALSE, include=FALSE}
+y_hcare_points <- readRDS("Data/y_hcare_points.RDS")
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, include=FALSE, eval=FALSE}
+# Calculate an isochrone for each row in y_hcare_points and save the results to a new dataframe
+
+# y_hcare_points is a data frame with 128 rows
+# num_rows <- min(nrow(y_hcare_points), 128)  # Ensure we don't go beyond the number of rows in y_hcare_points or 128, whichever is smaller
+
+# Create the new dataframe to store the results in
+y_hcare_isos <- data.frame()
+
+# # Loop through the points data calculating isochrones for each row.
+for (i in 1:nrow(y_hcare_points)) {
+  a <- y_hcare_points[i, ]
+  a <- cbind(a,
+              otp_isochrone(otpcon = otpcon,
+                            fromPlace = a,
+                            mode = "walk",
+                            maxWalkDistance = 1600,
+                            cutoffSec = 1200))
+y_hcare_isos <- rbind(y_hcare_isos, a)
+}
+
+remove(a)
+remove(i)
+
+# rename the geometry.1 column
+y_hcare_isos <- y_hcare_isos |>
+  rename(isochrone = geometry.1)
+
+# # Remove the fromPlace column
+y_hcare_isos <- y_hcare_isos |>
+  select(-fromPlace)
+
+# saveRDS(y_hcare_isos, "Data/y_hcare_isos.RDS")
+
+# # Test this to see if it worked
+tmap_mode("view")
+qtm(y_hcare_isos$geometry) +
+  qtm(y_hcare_isos$isochrone, fill = NULL)
+tmap_mode("plot")
+```
+
+```{r, echo=FALSE, include=FALSE, eval=FALSE}
+y_hcare_isos <- readRDS("Data/y_hcare_isos.RDS")
+```
+
+# Make the hex grid
+
+```{r, echo = FALSE, message=FALSE, warning=FALSE, include=FALSE, eval=FALSE}
+bbox <- st_bbox(y_lad)
+hex_grid <- st_make_grid(bbox,
+                         cellsize = 250,
+                         square = FALSE
+                         )
+# saveRDS(hex_grid, "Data/hex_grid.RDS")
+# remove(bbox)
+
+# tmap_mode("view")
+# qtm(hex_grid, fill = NULL)
+# tmap_mode("plot")
+```
+
+```{r, include=FALSE, include=FALSE, eval=FALSE, echo=FALSE}
+hex_grid <- readRDS("Data/hex_grid.RDS")
+```
+
+# Convert the hex grid to points and centroids
+
+```{r, echo=FALSE, include=FALSE, eval=FALSE, warning=FALSE}
+# Convert the sfc to an sf
+hex_sf <- st_as_sf(hex_grid)
+
+# Now calculate the centroids
+hex_centroids <- st_centroid(hex_sf)
+
+# Now cast hex_sf$x as points to a new df
+hex_points <- st_cast(hex_sf$x, "POINT")
+
+# Now convert to sfc_points to an sf
+hex_points <- st_as_sf(hex_points)
+
+# Remove duplicate points
+hex_points <- unique(hex_points)
+# remove(hex_sf, hex_grid)
+saveRDS(hex_centroids, "Data/hex_centroids.RDS")
+saveRDS(hex_points, "Data/hex_points.RDS")
+# remove(hex_centroids, hex_points)
+# All points required have now been produced.
+# Next, clip the points data so that only points that appear within each isochrone remain
+tmap_mode("view")
+qtm(hex_centroids, dots.col = "red") +
+  qtm(hex_points, dots.col = "pink")
+tmap_mode("plot")
+
+```
+
+```{r, include=FALSE, eval=FALSE, echo=FALSE}
+hex_centroids <- readRDS("Data/hex_centroids.RDS")
+hex_points <- readRDS("Data/hex_points.RDS")
+```
+
+## Clip the hex points/centroids
+
+```{r, echo=FALSE, include=FALSE, eval=FALSE }
+# ... Clip the hex points/centroids so that we are left with only the ones that fall within the hcare isochrones 
+
+y_hcare_isos
+y_hcare_isos <- st_transform(y_hcare_isos, 27700)
+y_hcare_isos
+
+y_hcare_isos <- y_hcare_isos |> 
+    st_set_geometry('isochrone')
+y_hcare_isos
+y_hcare_isos <- st_transform(y_hcare_isos, 27700)
+y_hcare_isos
+
+hexcents_inhcareisos <- st_intersection(hex_centroids, y_hcare_isos$isochrone)
+hexpoint_inhcareisos <- st_intersection(hex_points, y_hcare_isos$isochrone)
+
+saveRDS(hexcents_inhcareisos, "Data/hexcents_inhcareisos.RDS")
+saveRDS(hexpoint_inhcareisos, "Data/hexpoint_inhcareisos.RDS")
+remove(hexcents_inhcareisos, hexpoint_inhcareisos)
+
+tmap_mode("view")
+qtm(hexpoint_inhcareisos, dots.col = "pink") +
+  qtm(hexcents_inhcareisos, dots.col = "red") +
+  qtm(y_hcare_isos$isochrone, fill = NULL)
+tmap_mode("plot")
+```
+
+```{r, include=FALSE, echo=FALSE}
+hexcents_inhcareisos <- readRDS("Data/hexcents_inhcareisos.RDS")
+hexpoint_inhcareisos <- readRDS("Data/hexpoint_inhcareisos.RDS")
+```
+
+## HCARE HEXCENTROIDS - Calculate walking routes to hcare points
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, eval=FALSE, include=FALSE}
+# Use each of the hex centroids as the START location & the 126 hcare_points as the END location.
+# If a hex_centroid appears in an hcare_isochrone, calculate walking time from that hex POINT/CENT TO hcare POINT.
+
+# y_hcare_isos
+y_hcare_isos <- st_transform(y_hcare_isos, 4326)
+# y_hcare_isos
+
+# hexcents_inhcareisos
+hexcents_inhcareisos <- st_transform(hexcents_inhcareisos, 4326)
+# hexcents_inhcareisos
+
+# Create a blank sf object to hold the results
+hcare_hexcent_routes <- st_sf(geometry = st_sfc(st_point()), crs = 4326)
+# Delete the rows from the newly created object
+hcare_hexcent_routes <- hcare_hexcent_routes[-1, ]
+
+# i=0
+# i=i+1
+# Run through the y_hcare_isos getting the routes to each hcare point from each hex_centroid that appears within that isocrone
+for (i in 1:nrow(y_hcare_isos)) {
+  
+  y_hcare_isos <- st_set_geometry(y_hcare_isos, "isochrone")
+  # See which hex_cents are in the (i) hcare isochrone
+  from_hex_cent <- st_intersection(hexcents_inhcareisos, y_hcare_isos[i, ])
+  # Remove duplicate points from from_hex_cent
+  from_hex_cent <- unique(from_hex_cent)
+
+  # Start calculating walking routes data
+  # Set the geometry column of y_hcare_isos
+  y_hcare_isos <- st_set_geometry(y_hcare_isos, "geometry")
+  y_hcare_isos <- st_transform(y_hcare_isos, 4326)
+  
+# j=0
+# j=j+1
+  # Loop through each hex point calculating the walking distance to the y_hcare_isos point
+  for (j in 1:nrow(from_hex_cent)) {
+    # get the from place from from_hex_cent
+    f <- st_as_sf(from_hex_cent$x[j])
+    
+    # get the to place
+    t <- st_as_sf(y_hcare_isos$geometry[i])
+    
+    # get the fromID
+    # a <- as.character(from_hex_cent[j,])
+# Use tryCatch to handle errors
+    tryCatch({
+      # Attempt to calculate the route
+      r <- otp_plan(otpcon = otpcon,
+                    fromPlace = f,
+                    toPlace = t,
+                    mode = "walk",
+                    get_geometry = TRUE
+                    )
+      # If a route is found, rbind the result to the hcare_hexcent_routes
+      m <- cbind(r, f, t)
+      hcare_hexcent_routes <- rbind(hcare_hexcent_routes, m)
+    }, error = function(e) {
+      # Print error message
+      message("Error occurred: ", conditionMessage(e))
+      # Exit the tryCatch block
+      return(NULL)
+    })
+    print(paste(j,"of",nrow(from_hex_cent),"done","&",i,"of",nrow(y_hcare_isos), "done"))
+  }
+}
+# rename x to "from", and x.1 to "to"
+hcare_hexcent_routes <- rename(hcare_hexcent_routes, from = x)
+hcare_hexcent_routes <- rename(hcare_hexcent_routes, to = x.1)
+# delete the fromPlace and toPlace columns
+hcare_hexcent_routes <- hcare_hexcent_routes |> 
+  select(-fromPlace)
+hcare_hexcent_routes <- hcare_hexcent_routes |> 
+  select(-toPlace)
+# drop the linestring (geometry) column
+# hcare_hexcent_routes <- st_drop_geometry(hcare_hexcent_routes)
+# hcare_hexcent_routes
+```
+
+```{r, echo=FALSE, eval=FALSE, include=FALSE}
+saveRDS(hcare_hexcent_routes, "Data/hcare_hexcent_routes.RDS")
+```
+
+```{r eval=FALSE, include=FALSE, echo=FALSE}
+hcare_hexcent_routes <- readRDS("Data/hcare_hexcent_routes.RDS")
+```
+
+```{r, echo=FALSE, eval=FALSE, include=FALSE}
+# Create an index for the hcare_hexcent_routes data
+# Add index column
+hcare_hexcent_routes$index <- row.names(hcare_hexcent_routes)
+
+# Move index column to the first position
+hcare_hexcent_routes <- hcare_hexcent_routes |>  
+  select(index, everything())
+
+# Print the modified data frame
+hcare_hexcent_routes[1:5,]
+saveRDS(hcare_hexcent_routes, "Data/hcare_hexcent_routes.RDS")
+
+# tmap_mode("view")
+# qtm(hcare_hexcent_routes$from, dots.col = "green") +
+#   qtm(hcare_hexcent_routes$to, dots.col = "red")
+# tmap_mode("plot")
+```
+
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
+hcare_hexcent_routes <- readRDS("Data/hcare_hexcent_routes.RDS")
+```
+
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
+# convert hcare_hexcent_routes to sf
+hcare_hexcent_routes <- st_as_sf(hcare_hexcent_routes)
+```
+
+```{r eval=FALSE, include=FALSE, echo=FALSE}
+# from_place <- readRDS("Data/from_place.RDS")
+# to_place <- readRDS("Data/to_place.RDS")
+```
+
+```{r, echo=FALSE, include=FALSE, eval=FALSE}
+##############################################################################################
+# Calculate circuitry for each route
+##############################################################################################
+# a <- st_drop_geometry(hcare_hexcent_routes)
+# from_place <- st_transform(from_place, crs = 4326)
+# to_place <- st_transform(to_place, crs = 4326)
+
+# i = 6549
+# i = i + 1
+
+# Initialize a vector to store the distances
+# distances <- numeric(nrow(a))
+hcare_hexcent_routes$circuity <- ""
+# Loop through each row
+for (i in 1:nrow(hcare_hexcent_routes)) {
+  # Print the POINT geometries for debugging
+  # print(hcare_hexcent_routes$from)
+  # print(hcare_hexcent_routes$to)
+  # Calculate euclidean distance
+  e <- as.numeric(st_distance(hcare_hexcent_routes$from[i], hcare_hexcent_routes$to[i]))
+  c <- ((hcare_hexcent_routes$walkDistance[i] - e) / hcare_hexcent_routes$walkDistance[i])
+  hcare_hexcent_routes[i,34] <- round(c,2)
+  print(paste(i,"of",nrow(hcare_hexcent_routes),"done"))
+}
+# if there are negative values, make them 0
+sum(hcare_hexcent_routes$circuity == 0)
+ # Assign the distances to a column in dataframe 'a'
+# a$euclidean_distance <- distances
+# c <- as.numeric(drop_na(as.data.frame(st_drop_geometry((as.numeric(a[i,9])) - as.numeric(e)) / st_drop_geometry(as.numeric(a[i,9])))))
+saveRDS(hcare_hexcent_routes, "Data/hcare_hexcent_routes.RDS")
+remove(c,e,f,i,j,m,r,t)
+```
+
+Make sure to point out limitations of the method Could have used a crossings file to make routes shorter for people
+
+## HCARE HEXPOINTS - Calculate walking routes to hcare points
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, eval=FALSE, include=FALSE}
+# Use each of the hex centroids as the START location & the 126 hcare_points as the END location.
+# If a hex_centroid appears in an hcare_isochrone, calculate walking time from that hex POINT/CENT TO hcare POINT.
+
+# y_hcare_isos
+y_hcare_isos <- st_transform(y_hcare_isos, 4326)
+# y_hcare_isos
+
+# hexpoint_inhcareisos
+hexpoint_inhcareisos <- st_transform(hexpoint_inhcareisos, 4326)
+# hexcents_inhcareisos
+
+# Create a blank sf object to hold the results
+hcare_hexpoint_routes <- st_sf(geometry = st_sfc(st_point()), crs = 4326)
+# Delete the rows from the newly created object
+hcare_hexpoint_routes <- hcare_hexpoint_routes[-1, ]
+
+# i=0
+# i=i+1
+# Run through the y_hcare_isos getting the routes to each hcare point from each hex_centroid that appears within that isocrone
+for (i in 1:nrow(y_hcare_isos)) {
+  
+  y_hcare_isos <- st_set_geometry(y_hcare_isos, "isochrone")
+  # See which hex_cents are in the (i) hcare isochrone
+  from_hex_point <- st_intersection(hexpoint_inhcareisos, y_hcare_isos[i, ])
+  # Remove duplicate points from from_hex_cent
+  from_hex_point <- unique(from_hex_point)
+
+  # Start calculating walking routes data
+  # Set the geometry column of y_hcare_isos
+  y_hcare_isos <- st_set_geometry(y_hcare_isos, "geometry")
+  y_hcare_isos <- st_transform(y_hcare_isos, 4326)
+  
+# j=0
+# j=j+1
+# Loop through each hex point calculating the walking distance to the y_hcare_isos point
+  for (j in 1:nrow(from_hex_point)) {
+    # get the from place from from_hex_cent
+    f <- st_as_sf(from_hex_point$x[j])
+    
+    # get the to place
+    t <- st_as_sf(y_hcare_isos$geometry[i])
+    
+    # get the fromID
+    # a <- as.character(from_hex_cent[j,])
+# Use tryCatch to handle errors
+    tryCatch({
+      # Attempt to calculate the route
+      r <- otp_plan(otpcon = otpcon,
+                    fromPlace = f,
+                    toPlace = t,
+                    mode = "walk",
+                    get_geometry = TRUE
+                    )
+      # If a route is found, rbind the result to the hcare_hexcent_routes
+      m <- cbind(r, f, t)
+      hcare_hexpoint_routes <- rbind(hcare_hexpoint_routes, m)
+    }, error = function(e) {
+      # Print error message
+      message("Error occurred: ", conditionMessage(e))
+      # Exit the tryCatch block
+      return(NULL)
+    })
+    print(paste(j,"of",nrow(from_hex_point),"done","&",i,"of",nrow(y_hcare_isos), "done"))
+  }
+}
+
+# rename x to "from", and x.1 to "to"
+hcare_hexpoint_routes <- rename(hcare_hexpoint_routes, from = x)
+hcare_hexpoint_routes <- rename(hcare_hexpoint_routes, to = x.1)
+# delete the fromPlace and toPlace columns
+hcare_hexpoint_routes <- hcare_hexpoint_routes |> 
+  select(-fromPlace)
+hcare_hexpoint_routes <- hcare_hexpoint_routes |> 
+  select(-toPlace)
+# drop the linestring (geometry) column
+# hcare_hexpoint_routes <- st_drop_geometry(hcare_hexpoint_routes)
+# hcare_hexpoint_routes
+```
+
+```{r, echo=FALSE, eval=FALSE, include=FALSE}
+saveRDS(hcare_hexpoint_routes, "Data/hcare_hexpoint_routes.RDS")
+```
+
+```{r eval=FALSE, include=FALSE, echo=FALSE}
+hcare_hexpoint_routes <- readRDS("Data/hcare_hexpoint_routes.RDS")
+```
+
+## hcare_points index
+
+```{r, echo=FALSE, include=FALSE, eval=FALSE}
+# Create an index for the hcare_hexcent_routes data
+# Add index column
+hcare_hexpoint_routes$index <- row.names(hcare_hexpoint_routes)
+
+# Move index column to the first position
+hcare_hexpoint_routes <- hcare_hexpoint_routes |>  
+  select(index, everything())
+
+# Print the modified data frame
+saveRDS(hcare_hexpoint_routes, "Data/hcare_hexpoint_routes.RDS")
+
+tmap_mode("view")
+qtm(hcare_hexcent_routes$from, dots.col = "green") +
+  qtm(hcare_hexcent_routes$to, dots.col = "red")
+tmap_mode("plot")
+```
+
+```{r, echo=FALSE, include=FALSE, eval=FALSE}
+hcare_hexcent_routes <- readRDS("Data/hcare_hexcent_routes.RDS")
+```
+
+```{r, echo=FALSE, include=FALSE, eval=FALSE}
+# convert hcare_hexcent_routes to sf
+hcare_hexpoint_routes <- st_as_sf(hcare_hexpoint_routes)
+```
+
+## hcare_point circuity
+
+```{r, echo=FALSE, include=FALSE, eval=FALSE , message=FALSE}
+##############################################################################################
+# Calculate circuitry for each route
+##############################################################################################
+# hcare_hexpoint_routes <- st_as_sf(hcare_hexpoint_routes)
+# hcare_hexpoint_routes <- as.data.frame(hcare_hexpoint_routes)
+# i = 0
+# i = i + 1
+
+# Initialize a vector to store the distances
+# distances <- numeric(nrow(a))
+hcare_hexpoint_routes$circuity <- ""
+# Loop through each row
+for (i in 1:nrow(hcare_hexpoint_routes)) {
+  # Print the POINT geometries for debugging
+  # print(hcare_hexcent_routes$from)
+  # print(hcare_hexcent_routes$to)
+  # Calculate euclidean distance
+  e <- as.numeric(st_distance(hcare_hexpoint_routes$from[i], hcare_hexpoint_routes$to[i]))
+  c <- ((hcare_hexpoint_routes$walkDistance[i] - e) / hcare_hexpoint_routes$walkDistance[i])
+  hcare_hexpoint_routes[i,32] <- round(c,2)
+  print(paste(i,"of",nrow(hcare_hexpoint_routes),"done"))
+}
+# if there are negative values, make them 0
+# sum(hcare_hexpoint_routes$circuity == 0)
+ # Assign the distances to a column in dataframe 'a'
+# a$euclidean_distance <- distances
+# c <- as.numeric(drop_na(as.data.frame(st_drop_geometry((as.numeric(a[i,9])) - as.numeric(e)) / st_drop_geometry(as.numeric(a[i,9])))))
+# Print the modified data frame
+saveRDS(hcare_hexpoint_routes, "Data/hcare_hexpoint_routes.RDS")
+```
+
+```{r, echo=FALSE, include=FALSE, eval=FALSE}
+hcare_hexpoint_routes <- readRDS("Data/hcare_hexpoint_routes.RDS")
+```
+
+```{r, message=FALSE, echo=FALSE, include=FALSE, eval=FALSE}
+# Refresh the environment ready to start work on the amenities
+remove(c, e, f, i, j, m, r, t, y_hcare_isos, y_hcare_points, hexpoint_inhcareisos, from_hex_point, hcare_hexpoint_routes, hcare_hexcent_routes)
+```
+
+```{r, include=FALSE, eval=FALSE, echo=FALSE}
+hcare_hexcent_routes <- readRDS("Data/hcare_hexcent_routes.RDS")
+hcare_hexpoint_routes <- readRDS("Data/hcare_hexpoint_routes.RDS")
+```
+
+```{r, include=FALSE, eval=FALSE, echo=FALSE}
+hcare_hexcent_routes <- st_set_geometry(hcare_hexcent_routes, value = "from")
+hcare_hexcent_routes # = WGS 84
+hcare_hexpoint_routes <- st_set_geometry(hcare_hexpoint_routes, value = "from")
+hcare_hexpoint_routes # = WGS 84
+```
+
+# OAS
+
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
+# Read in the OA shapefile
+oas <- st_read("Data/York_oas.shp")
+# remove(oas)
+oas <- st_transform(oas, crs = 4326)
+```
+
+```{r}
+oas <- st_as_sf(oas[,c(2, 7)])
+oas
+```
+
+```{r, eval=FALSE, include=FALSE, echo=FALSE}}
+# Merge the hcare cents and points data into a single dataframe
+hcare_all <- rbind(hcare_hexcent_routes, hcare_hexpoint_routes)
+```
+
+```{r, include=FALSE, echo=FALSE, eval=FALSE}
+# Add the OACode to the hcare_all data
+# Check that the crs are correct
+oas # = WGS 84
+oas <- st_transform(oas, 4326)
+oas # = WGS 84 | geometry = geometry
+hcare_all # = WGS 84 | geometry = from
+
+# Find which "from" points intersect with the y_oas$geometry
+oa_intersects <- hcare_all |> st_intersects(oas)
+
+# Apply the vapply function to the oa_intersects results so that the OACode is added to the hcare_all data
+hcare_all$oa <- vapply(oa_intersects,
+                       function(index) {if(length(index)==0) {
+                         NA_character_} else {
+                               oas$OA21CD[index]
+                             }
+                           },
+                           character(1))
+```
+
+```{r}
+remove(oa_intersects, y_oas, hcare_hexcent_routes, hcare_hexpoint_routes)
+```
+
+```{r}
+saveRDS(hcare_all, "Data/hcare_all.RDS")
+```
+
+```{r}
+hcare_all <- readRDS("Data/hcare_all.RDS")
+```
+
+
+```{r}
+# reindex all the hcare_all data and add the index to a new column
+hcare_all$index <- row.names(hcare_all)
+hcare_all <- as.data.frame(hcare_all)
+# take the "from" and "to" columns and put them in a new dataframe
+from_to <- hcare_all[,c("index", "oa" , "from", "to")]
+from_to <- st_as_sf(from_to)
+from_to
+hcare_all <- st_as_sf(hcare_all)
+hcare_all
+```
+
+```{r}
+saveRDS(from_to, "Data/from_to.RDS")
+```
+
+
+```{r}
+# Calculate the straight line distance between the from and to points 
+from_to$e <- st_distance(from_to$from,
+                         from_to$to,
+                         which = "Great Circle",
+                         by_element = TRUE)
+
+# saveRDS(from_to, "Data/from_to.RDS")
+```
+
+
+```{r}
+from_to <- from_to  |>  
+  rename(OA21CD = oa)
+# Convert from_to$e to numeric
+from_to$e <- as.numeric(from_to$e)
+# Calculate the circuity of each route
+from_to$circuity <- ((hcare_all$walkDistance - from_to$e)/hcare_all$walkDistance)
+saveRDS(from_to, "Data/from_to.RDS")
+```
+
+```{r}
+from_to <- readRDS("Data/from_to.RDS")
+```
+
+
+```{r}
+# create a new dataframe containing the mean circuitry for each OA21CD from the from_to dataframe
+# Make any negative values 0
+from_to$circuity[from_to$circuity < 0] <- 0
+
+circuity <- as.data.frame(st_drop_geometry(group_by(from_to, OA21CD) |> 
+  summarise(mean_circuity = mean(circuity, na.rm = FALSE))))
+```
+
+
+```{r}
+# oas <- as.data.frame(oas)
+# oa_circuity <- merge(oas, circuity, by = "OA21CD")
+# oa_circuity <- st_as_sf(oa_circuity)
+from_to <- as.data.frame(from_to) 
+from_to <- merge(from_to, circuity, by = "OA21CD")
+```
+
+
+
+
+```{r}
+# Plot the oa_circuity filling the polygons with graduated coolor scheme from the circuity column
+tm_shape(oa_circuity) +
+  tm_fill("mean_circuity", palette = "viridis") +
+  tm_basemap(server = "OpenStreetMap")
+
+ggplot() +
+  geom_sf(data = oa_circuity, aes(fill = mean_circuity)) +
+  scale_fill_viridis_c() +
+  theme_void()
+
+tmap_mode("view")
+qtm(oa_circuity,
+  fill = "mean_circuity",
+  palette = "cividis"
+)
+
+# Plot the polygons and add a basemap
+mapview(oa_circuity, zcol = "mean_circuity")
+
+# hope this works!
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# What does circuity look like?
+
+# Results
+
+# Where is circuity best/worst?
+
+# What are the demographics of the best areas?
+
+# What does car ownership look like in these areas?
+
+# Discussion
+
+\
+\
+\
+
+# References
+
+::: {#refs}
+:::
+
+# Appendix {.appendix}
