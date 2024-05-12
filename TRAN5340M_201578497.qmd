@@ -37,7 +37,6 @@ figcaption {
 }
 </style>
 ```
-
 ```{r, echo=FALSE, eval=FALSE, include=FALSE}
 assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
 ```
@@ -62,62 +61,74 @@ library(mapview)
 library(leaflet)
 library(leaflet.providers)
 library(basemaps)
+library(kableExtra)
 ```
 
 # Introduction
 
 Carlos Moreno first proposed the 15-minute city concept in 2016. The focus of the concept is that access to essential services and amenities, such as healthcare and greenspace should be within a 15-minute walk or cycle from a persons home [@morenoIntroducing15MinuteCity2021]. The COVID-19 pandemic then highlighted the importance of local access to essential services, because lockdowns and other restrictions on movement limited the ability to travel beyond ones immediate neighbourhood. The 15-minute city concept has gained traction more recently within the disciplines of urban planning and sustainable development. It also provided a new perspective on "chrono-urbanism", in which there is an inversely proportional relationship between peoples quality of life and the time people invest in transportation (which is especially true in the use of motor vehicles) [@loganXminuteCityMeasuring2022].
 
-Active travel modes such as walking an cycling are better for peoples health outcomes by enabling better fitness levels and reducing inactivity. Benefits to the economy can be measured through healthier, and fewer people needing the NHS, therefore saving it money. The environment benfits through increased active travel because it is emission-free, which reduces particulate matter, increasing air quality in towns and cities [@SecondCyclingWalking2023].
+Active travel modes such as walking an cycling are better for peoples health outcomes. It enables better potential fitness levels and reduces inactivity. Benefits to the economy can be measured through a healthier society, which results in fewer people needing to use the NHS, therefore saving it money. The environment benefits from increased active travel because these modes of transport are emission-free, which reduces airborne particulate matter, increasing air quality in towns and cities [@SecondCyclingWalking2023].
 
-However, time is an important factor when it comes to peoples decisions around mode choice, and the study by @ralphItReallyToo2020 highlights this very well. Pertinent to the study in this report, it was discovered that people were more likely to overestimate the length of the route, and therefore the time it would take to walk/cycle, along routes where there were barriers to overcome and many turns to take. Other reasons for choosing against walking in their study were fears of crime, and getting lost, and importantly in the context of this study, carrying something heavy. They found that people were more likely to lower their estimations with experience and familiarity of the route(s).
+However, time and its availability is an important factor when it comes to peoples decisions around mode choice. The study by @ralphItReallyToo2020 highlights this very well, and is pertinent to the study in this report because it was discovered that people were more likely to overestimate the length of the route, and therefore the time it would take to walk/cycle, along routes where there were barriers to overcome and many turns to take. This decreased the chance of people using an active mode of transport over motorised vehicles. Other reasons for choosing against walking in their study were fears of crime, getting lost, and importantly in the context of this study, carrying something heavy. They also found that people were more likely to lower their estimations of the time and distance of a route with experience and familiarity of that route(s).
 
-Through urban design, it should be possible to increase active travel, and reduce (private) vehicle use, but in order to achieve these goals, understanding the current situation in terms of accessibility is important. This study looks to contribute to this understanding, using the City of York Local Authority District (York LAD), which includes the City of York and the surrounding villages and by analysing peoples access to essential services (healthcare provision in this case), though circuity of walking route measurements.
+Through urban design, it should be possible to increase active travel, and reduce (private) motorised vehicle use. In order to achieve these goals, understanding the current situation in terms of accessibility is important. This study looks to contribute to this understanding, using the City of York Local Authority District (York LAD), which includes the City of York and the surrounding villages and by analysing peoples access to essential services (healthcare provision in this case), though circuity of walking route measurements.
 
 # Scope
 
-The primary aim of this study is to analyse ease of pedestrian access to basic essential amenities. Access will be measured through defining a reasonable travel time based on 20 minutes average walking distance. Twenty minutes was chosen, because the average distance walked in around fifteen to twenty minutes is one mile [@britishheartfoundationWalksTreksFAQs].
+The primary aim of this study is to analyse ease of pedestrian access to basic essential (health) services. This will highlight the the areas in which access is more or less likely to occur by active travel modes and will help towards future policy in urban design that has a focus on economic and environmental sustainability and health.
+
+Access will be measured through defining a reasonable travel time from each service, based on 20 minutes average walking distance. Twenty minutes was chosen, because the average distance walked in around this amount of time is equivalent to one mile [@britishheartfoundationWalksTreksFAQs].
+
+I will firstly describe the methods that will be used, and justify some of the decisions made in regards to the preparing, cleaning and processing of the data, including communicating and visualising the results. I will then comment on how these results may contribute to planning the urban environment in respect of the tenets of the 15-minute city. Finally, I will highlight some of the problems and limitations of the study, and propose any changes that could be made to similar studies in the future.
 
 # Area of study
 
-The York LAD was chosen because the makeup of the city is such that surrounding the tightly packed walled center, lies less dense suburban areas, which in turn are surrounded at the periphery by smaller more isolated villages. This provides a variety of scenarios to analyse.
-
-```{r, echo=FALSE, eval=FALSE, include=FALSE, message=FALSE}
-# Load the York Local Authority District shapefile which represents the study area.
-# Use this polygon to clip the rest of the data to.
-# y_lad  <-  st_read("Data/York_LAD.shp")
-# saveRDS(y_lad, "Data/y_lad.RDS")
-```
-
-```{r, echo=FALSE, include=FALSE, eval=FALSE}
-# y_lad <- readRDS("Data/y_lad.RDS")
-```
+The York LAD was chosen because the of the physical makeup of the city. It sits in the countyo f North Yorkshire & The Humber andhas a population of around 200,000, of which there is a large student population of around 48,000 [@cityofyorkcouncilOneCityAll], many of which could potentially benefit from cheap and healthy transport options around the city, especially as the main campus of the University of York sits some way outside the centre. It has a tightly packed walled old center, that is immediately surrounded by increasingly less dense suburban suburban neighbourhoods and at the periphery by smaller more isolated villages, such as Haxby and Bishopthorpe. This provides a variety of different settings in which analysis can be carried out and compared.
 
 # Datasets
 
-# Pre-Processing
+-   The data was extracted, processed and analysed using RStudio 2023.12.1+402 "Ocean Storm".
 
-# Understanding
+-   The study area boundary was extracted from the Open Geography Portal [@officefornationalstatisticsOpenGeographyPortal2023].
 
-# Preparation
+-   Point data for the healthcare services was extracted from OpenStreetMap (OSM) using the `osmdata`, and the services chosen were `"clinic", "dentist", "doctors", "hospital", "pharmacy"`.
+
+-   A graph of the study area was locally built using the `opentripplanner` package which is a multi-modal route planner, using imported OSM networks and allowed for both the isochrones around the services, and routes to them to be calculated.
+
+# Pre-Processing, Understanding & Preparation
+
+Once the data was extracted, and in order to be able to process them correctly, it was important to understand their structures and content. The OSM data returned points and polygons. So that we were able to calculate isochones properly from point data, it was necessary to convert polygons consisting of larger buildings such as hospitals, to points representing the centroid of the polygons. It was then possible to combine the data that was originally point data and the new centroid points ready for processing.
 
 # Exploratory data analysis
 
 # Methodology
 
+```{r, echo=FALSE, eval=FALSE, include=FALSE, message=FALSE}
+# Load the York Local Authority District shapefile which represents the study area.
+# Use this polygon to clip the rest of the data to.
+y_lad  <-  st_read("Data/York_LAD.shp")
+y_lad <- st_as_sf(y_lad)
+```
+
+```{r, echo=FALSE, eval=FALSE, include=FALSE, message=FALSE}
+saveRDS(y_lad, "Data/y_lad.RDS")
+```
+
 ```{r, echo=FALSE, eval=FALSE, include=FALSE}
-# OpenTripPlanner Server setup
-#  This will only need to be done a single time
-#  SPecify the path to OTP
-path_data <- file.path("Data/OTP")
+# This block is commented because the graph that is built here is packaged up and hosted on gitHub.
 
-# Get the OTP JAR file
-path_otp <- otp_dl_jar(path_data, cache = FALSE)
-
-# Build the graph
-log1 <- otp_build_graph(otp = path_otp,
-                        dir = path_data,
-                        memory = 6000)
+# # OpenTripPlanner Server setup
+# #  SPecify the path to OTP
+# path_data <- file.path("Data/OTP")
+# 
+# # Get the OTP JAR file
+# path_otp <- otp_dl_jar(path_data, cache = FALSE)
+# 
+# # Build the graph
+# log1 <- otp_build_graph(otp = path_otp,
+#                         dir = path_data,
+#                         memory = 6000)
 ```
 
 ```{r, echo=FALSE, include=FALSE, eval=FALSE}
@@ -128,35 +139,32 @@ unzip("OTP.zip", exdir = "Data/")
 ```
 
 ```{r, echo=FALSE, eval=FALSE, warning=FALSE, include=FALSE}
-# # Take a look at the interactive map of the graph
+# Prepare the graph for use on this machine
 path_data <- file.path("Data/OTP")
-# Get the OTP JAR fil
+# Get the OTP JAR file
 path_otp <- otp_dl_jar(path_data, cache = FALSE)
 log2 <- otp_setup(otp = path_otp, dir = path_data, open_browser = FALSE)
-remove(path_data)
 ```
 
 ```{r, echo=FALSE, eval=FALSE, warning=FALSE, include=FALSE}
-# Connect R to OTP
-# You should get something like the following if it all works
+# Connect this session on RStudio to the OTP server
+# You should get something like: -
 # Router http://localhost:8080/otp/routers/default exists
 otpcon <- otp_connect(timezone = "Europe/London")
 ```
 
 ```{r, echo=FALSE, include=FALSE, eval=FALSE}
-# Get the points data from OSM (essential amenities and services)
+# Define the list of healthcare amenities we wishe to analyse
 hcare_vars <- c("clinic", "dentist", "doctors", "hospital", "pharmacy")
 ```
 
 ```{r, echo=FALSE, eval=FALSE, include=FALSE}
-# # Convert the Local Authority boundary polygon to an sf object
-# y_lad_sf <- st_as_sf(y_lad)
-# y_lad_sf <- st_as_sf(y_lad)
-# # convert the CRS to match the OSM CRS
-# y_lad_sf <- st_transform(y_lad_sf, 4326)
+# Convert the Local Authority boundary polygon to an sf object
+y_lad_sf <- st_as_sf(y_lad)
+# convert the CRS to match the OSM CRS (4326)
+y_lad_sf <- st_transform(y_lad_sf, 4326)
 # Save the LAD file as RDS
-# saveRDS(y_lad_sf, "y_lad_sf.RDS")
-# remove(y_lad)
+saveRDS(y_lad_sf, "y_lad_sf.RDS")
 ```
 
 ```{r, echo=FALSE, include=FALSE, eval=FALSE}
@@ -173,7 +181,7 @@ hcare_query <- opq(bbox = st_bbox(y_lad_sf)) |>
 # Get all the OSM data
 yrk_hcare <- osmdata_sf(hcare_query)
 # Save the downloaded data...
-# saveRDS(yrk_hcare, file = "Data/yrk_hcare.RDS")
+saveRDS(yrk_hcare, file = "Data/yrk_hcare.RDS")
 ```
 
 ```{r, include=FALSE, echo=FALSE, eval=FALSE}
@@ -182,6 +190,13 @@ yrk_hcare <- readRDS("Data/yrk_hcare.RDS")
 ```
 
 ```{r, echo=FALSE, include=FALSE, eval=FALSE}
+
+# tmap_mode("view")
+# qtm(yrk_hcare$osm_points) +
+#   qtm(yrk_hcare$osm_polygons) +
+#   qtm(yrk_hcare$osm_multipolygons)
+# tmap_mode("plot")
+
 ########### HEALTHCARE
 ####### POINTS
 # Find which points intersect with the polygons. This creates a dataframe that contains a count
@@ -194,9 +209,9 @@ int1_bool <- lapply(int1, length)==0
 hcare_points <- yrk_hcare$osm_points[int1_bool,]
 remove(int1)
 
-tmap_mode("view")
-qtm(hcare_points)
-tmap_mode("plot")
+# tmap_mode("view")
+# qtm(hcare_points)
+# tmap_mode("plot")
 # Now the points have been filtered out to leave only those points that do not intersect with a polygon, we need to convert the polygons into points, by calculating centroids for them. These centroids can then be added to the "hcare" points data.
 
 ####### POLYGONS
@@ -249,6 +264,11 @@ tmap_mode("plot")
 
 ```{r, echo=FALSE, eval=FALSE, include=FALSE}
 y_hcare_points <- readRDS("Data/y_hcare_points.RDS")
+ggplot(y_hcare_points, aes(x = amenity, fill = amenity)) +
+  geom_bar() +
+  scale_fill_brewer(palette = "Set2") +
+  labs(title = "Number of amenities by type", x = "Amenity", y = "Amenity count") +
+  theme(plot.title.position = "")
 ```
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE, eval=FALSE}
@@ -772,7 +792,6 @@ saveRDS(hcare_all, "Data/hcare_all.RDS")
 hcare_all <- readRDS("Data/hcare_all.RDS")
 ```
 
-
 ```{r, eval=FALSE, include=FALSE, echo=FALSE}
 # reindex all the hcare_all data and add the index to a new column
 hcare_all <- as.data.frame(hcare_all)
@@ -791,7 +810,6 @@ hcare_all
 saveRDS(from_to, "Data/from_to.RDS")
 ```
 
-
 ```{r, eval=FALSE, include=FALSE, echo=FALSE}
 # Calculate the straight line distance between the from and to points 
 from_to$e <- st_distance(from_to$from,
@@ -801,7 +819,6 @@ from_to$e <- st_distance(from_to$from,
 
 saveRDS(from_to, "Data/from_to.RDS")
 ```
-
 
 ```{r, eval=FALSE, include=FALSE, echo=FALSE}
 from_to <- from_to  |>  
@@ -817,58 +834,34 @@ saveRDS(from_to, "Data/from_to.RDS")
 from_to <- readRDS("Data/from_to.RDS")
 ```
 
-
 ```{r, eval=FALSE, include=FALSE, echo=FALSE}
 # create a new dataframe containing the mean circuitry for each OA21CD from the from_to dataframe
 # Make any negative values 0
 from_to$circuity[from_to$circuity < 0] <- 0
-
-circuity <- group_by(from_to, OA21CD) |> 
-  summarise(mean_circuity = mean(circuity, na.rm = FALSE))
-
-# circuity <- as.data.frame(st_drop_geometry(group_by(from_to, OA21CD) |> 
-#   summarise(mean_circuity = mean(circuity, na.rm = FALSE))))
+circuity <- as.data.frame(st_drop_geometry(group_by(from_to, OA21CD) |>
+  summarise(mean_circuity = mean(circuity, na.rm = FALSE))))
 ```
-
 
 ```{r, eval=FALSE, include=FALSE, echo=FALSE}
 oas <- readRDS("Data/y_oas.RDS")
 oas <- as.data.frame(oas)
 oa_circuity <- merge(oas, circuity, by = "OA21CD")
 oa_circuity <- st_as_sf(oa_circuity)
+saveRDS(oa_circuity, "Data/oa_circuity.RDS")
 from_to <- as.data.frame(from_to) 
-from_to <- merge(from_to, circuity, by = "OA21CD")
+# from_to <- merge(from_to, circuity, by = "OA21CD")
 ```
 
-```{r, eval=FALSE, include=TRUE, echo=FALSE}
+```{r, eval=TRUE, include=TRUE, echo=FALSE}
+# from_to <- readRDS("Data/from_to.RDS")
+oa_circuity <- readRDS("Data/oa_circuity.RDS")
 ggplot() +
   annotation_map_tile("osm", zoomin = -1) +
-  geom_sf(data = from_to,
+  geom_sf(data = oa_circuity,
           aes(fill = mean_circuity),
           color = NA) +
   scale_fill_viridis_c(alpha = 0.75)
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # What does circuity look like?
 
