@@ -37,7 +37,8 @@ figcaption {
 }
 </style>
 ```
-```{r, echo=FALSE}
+
+```{r, echo=FALSE, eval=FALSE, include=FALSE}
 assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
 ```
 
@@ -158,7 +159,7 @@ hcare_vars <- c("clinic", "dentist", "doctors", "hospital", "pharmacy")
 # remove(y_lad)
 ```
 
-```{r, echo=FALSE, include=FALSE}
+```{r, echo=FALSE, include=FALSE, eval=FALSE}
 y_lad_sf <- readRDS("Data/y_lad_sf.RDS")
 ```
 
@@ -250,7 +251,7 @@ tmap_mode("plot")
 y_hcare_points <- readRDS("Data/y_hcare_points.RDS")
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, include=FALSE, eval=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE, eval=FALSE}
 # Calculate an isochrone for each row in y_hcare_points and save the results to a new dataframe
 
 # y_hcare_points is a data frame with 128 rows
@@ -352,7 +353,7 @@ hex_points <- readRDS("Data/hex_points.RDS")
 
 ## Clip the hex points/centroids
 
-```{r, echo=FALSE, include=FALSE, eval=FALSE }
+```{r, echo=FALSE, include=FALSE, eval=FALSE}
 # ... Clip the hex points/centroids so that we are left with only the ones that fall within the hcare isochrones 
 
 y_hcare_isos
@@ -379,7 +380,7 @@ qtm(hexpoint_inhcareisos, dots.col = "pink") +
 tmap_mode("plot")
 ```
 
-```{r, include=FALSE, echo=FALSE}
+```{r, include=FALSE, echo=FALSE, eval=FALSE}
 hexcents_inhcareisos <- readRDS("Data/hexcents_inhcareisos.RDS")
 hexpoint_inhcareisos <- readRDS("Data/hexpoint_inhcareisos.RDS")
 ```
@@ -469,7 +470,7 @@ hcare_hexcent_routes <- hcare_hexcent_routes |>
 saveRDS(hcare_hexcent_routes, "Data/hcare_hexcent_routes.RDS")
 ```
 
-```{r eval=FALSE, include=FALSE, echo=FALSE}
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
 hcare_hexcent_routes <- readRDS("Data/hcare_hexcent_routes.RDS")
 ```
 
@@ -501,7 +502,7 @@ hcare_hexcent_routes <- readRDS("Data/hcare_hexcent_routes.RDS")
 hcare_hexcent_routes <- st_as_sf(hcare_hexcent_routes)
 ```
 
-```{r eval=FALSE, include=FALSE, echo=FALSE}
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
 # from_place <- readRDS("Data/from_place.RDS")
 # to_place <- readRDS("Data/to_place.RDS")
 ```
@@ -628,7 +629,7 @@ hcare_hexpoint_routes <- hcare_hexpoint_routes |>
 saveRDS(hcare_hexpoint_routes, "Data/hcare_hexpoint_routes.RDS")
 ```
 
-```{r eval=FALSE, include=FALSE, echo=FALSE}
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
 hcare_hexpoint_routes <- readRDS("Data/hcare_hexpoint_routes.RDS")
 ```
 
@@ -663,7 +664,7 @@ hcare_hexpoint_routes <- st_as_sf(hcare_hexpoint_routes)
 
 ## hcare_point circuity
 
-```{r, echo=FALSE, include=FALSE, eval=FALSE , message=FALSE}
+```{r, echo=FALSE, include=FALSE, eval=FALSE, message=FALSE}
 ##############################################################################################
 # Calculate circuitry for each route
 ##############################################################################################
@@ -725,13 +726,16 @@ oas <- st_read("Data/York_oas.shp")
 oas <- st_transform(oas, crs = 4326)
 ```
 
-```{r}
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
 oas <- st_as_sf(oas[,c(2, 7)])
 oas
 ```
 
-```{r, eval=FALSE, include=FALSE, echo=FALSE}}
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
 # Merge the hcare cents and points data into a single dataframe
+hcare_all <- readRDS("Data/hcare_all.RDS")
+hcare_hexcent_routes <- readRDS("Data/hcare_hexcent_routes.RDS")
+hcare_hexpoint_routes <- readRDS("Data/hcare_hexpoint_routes.RDS")
 hcare_all <- rbind(hcare_hexcent_routes, hcare_hexpoint_routes)
 ```
 
@@ -756,109 +760,92 @@ hcare_all$oa <- vapply(oa_intersects,
                            character(1))
 ```
 
-```{r}
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
 remove(oa_intersects, y_oas, hcare_hexcent_routes, hcare_hexpoint_routes)
 ```
 
-```{r}
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
 saveRDS(hcare_all, "Data/hcare_all.RDS")
 ```
 
-```{r}
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
 hcare_all <- readRDS("Data/hcare_all.RDS")
 ```
 
 
-```{r}
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
 # reindex all the hcare_all data and add the index to a new column
+hcare_all <- as.data.frame(hcare_all)
 hcare_all$index <- row.names(hcare_all)
 hcare_all <- as.data.frame(hcare_all)
 # take the "from" and "to" columns and put them in a new dataframe
-from_to <- hcare_all[,c("index", "oa" , "from", "to")]
+from_to <- hcare_all[,c("index", "oa" , "from", "to", "walkDistance", "geometry")]
 from_to <- st_as_sf(from_to)
 from_to
 hcare_all <- st_as_sf(hcare_all)
 hcare_all
+# saveRDS(hcare_all, "Data/hcare_all.RDS")
 ```
 
-```{r}
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
 saveRDS(from_to, "Data/from_to.RDS")
 ```
 
 
-```{r}
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
 # Calculate the straight line distance between the from and to points 
 from_to$e <- st_distance(from_to$from,
                          from_to$to,
                          which = "Great Circle",
                          by_element = TRUE)
 
-# saveRDS(from_to, "Data/from_to.RDS")
+saveRDS(from_to, "Data/from_to.RDS")
 ```
 
 
-```{r}
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
 from_to <- from_to  |>  
   rename(OA21CD = oa)
 # Convert from_to$e to numeric
 from_to$e <- as.numeric(from_to$e)
 # Calculate the circuity of each route
-from_to$circuity <- ((hcare_all$walkDistance - from_to$e)/hcare_all$walkDistance)
+from_to$circuity <- ((from_to$walkDistance - from_to$e)/from_to$walkDistance)
 saveRDS(from_to, "Data/from_to.RDS")
 ```
 
-```{r}
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
 from_to <- readRDS("Data/from_to.RDS")
 ```
 
 
-```{r}
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
 # create a new dataframe containing the mean circuitry for each OA21CD from the from_to dataframe
 # Make any negative values 0
 from_to$circuity[from_to$circuity < 0] <- 0
 
-circuity <- as.data.frame(st_drop_geometry(group_by(from_to, OA21CD) |> 
-  summarise(mean_circuity = mean(circuity, na.rm = FALSE))))
+circuity <- group_by(from_to, OA21CD) |> 
+  summarise(mean_circuity = mean(circuity, na.rm = FALSE))
+
+# circuity <- as.data.frame(st_drop_geometry(group_by(from_to, OA21CD) |> 
+#   summarise(mean_circuity = mean(circuity, na.rm = FALSE))))
 ```
 
 
-```{r}
-# oas <- as.data.frame(oas)
-# oa_circuity <- merge(oas, circuity, by = "OA21CD")
-# oa_circuity <- st_as_sf(oa_circuity)
+```{r, eval=FALSE, include=FALSE, echo=FALSE}
+oas <- readRDS("Data/y_oas.RDS")
+oas <- as.data.frame(oas)
+oa_circuity <- merge(oas, circuity, by = "OA21CD")
+oa_circuity <- st_as_sf(oa_circuity)
 from_to <- as.data.frame(from_to) 
 from_to <- merge(from_to, circuity, by = "OA21CD")
 ```
 
-
-```{r}
-bb <- readRDS("Data/y_lad_sf.RDS")
-bb <- sttrans
-```
-
-
-```{r}
-# Plot the oa_circuity filling the polygons with graduated coolor scheme from the circuity column
-# Set tmap mode to plot
-# tmap_mode("plot")
-# 
-# # Load the OpenStreetMap tiles
-# tiles <- read_osm(bb)
-# 
-# # Plot the thematic map with basemap
-# tmap_mode("view")
-# tm_shape(oa_circuity) +
-#   tm_borders() +
-#   tm_fill("mean_circuity",
-#           palette = "viridis",
-#           alpha = 0.65) +
-#   tm_basemap("OpenStreetMap")
-```
-
-```{r}
+```{r, eval=FALSE, include=TRUE, echo=FALSE}
 ggplot() +
   annotation_map_tile("osm", zoomin = -1) +
-  geom_sf(data = oa_circuity, aes(fill = mean_circuity), color = NA) +
+  geom_sf(data = from_to,
+          aes(fill = mean_circuity),
+          color = NA) +
   scale_fill_viridis_c(alpha = 0.75)
 ```
 
