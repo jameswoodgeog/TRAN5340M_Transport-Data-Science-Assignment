@@ -62,6 +62,7 @@ library(leaflet)
 library(leaflet.providers)
 library(basemaps)
 library(kableExtra)
+library(gridExtra)
 ```
 
 # Introduction
@@ -98,11 +99,7 @@ The York LAD was chosen because the of the physical makeup of the city. It sits 
 
 # Pre-Processing, Understanding & Preparation
 
-Once the data was extracted, and in order to be able to process them correctly, it was important to understand their structures and content. The OSM data returned points and polygons. So that we were able to calculate isochones properly from point data, it was necessary to convert polygons consisting of larger buildings such as hospitals, to points representing the centroid of the polygons. It was then possible to combine the data that was originally point data and the new centroid points ready for processing.
-
-# Exploratory data analysis
-
-# Methodology
+Once the data was extracted, and in order to be able to process them correctly, it was important to understand their structures and content. The OSM data returned points and polygons. So that we were able to calculate isochrones properly from point data, it was necessary to convert polygons consisting of larger buildings such as hospitals, to points representing the centroid of the polygons. It was then possible to combine the data that was originally point data and the new centroid points ready for processing.
 
 ```{r, echo=FALSE, eval=FALSE, include=FALSE, message=FALSE}
 # Load the York Local Authority District shapefile which represents the study area.
@@ -262,14 +259,39 @@ tmap_mode("plot")
 #        hcare_points, yrk_hcare, int1_bool)
 ```
 
-```{r, echo=FALSE, eval=FALSE, include=FALSE}
-y_hcare_points <- readRDS("Data/y_hcare_points.RDS")
-ggplot(y_hcare_points, aes(x = amenity, fill = amenity)) +
+# Exploratory data analysis
+
+The cleaned data was then plotted so that we could make sure that both the numerical counts of the different amenities looked feasible, and also the spatial distribution of them was correctly within the study area.
+
+```{r, echo=FALSE, eval=TRUE, include=TRUE, message=FALSE}
+#| label: fig-hcare
+#| fig-cap: Healthcare services in the York study area
+## | fig-asp: 0.618
+## | fig-width: 12
+## | fig-pos: H
+# y_hcare_points <- readRDS("Data/y_hcare_points.RDS")
+p1 <- ggplot(y_hcare_points, aes(x = amenity, fill = amenity)) +
   geom_bar() +
   scale_fill_brewer(palette = "Set2") +
-  labs(title = "Number of amenities by type", x = "Amenity", y = "Amenity count") +
-  theme(plot.title.position = "")
+  labs(x = "Amenity type", y = "Amenity count") +
+  guides(fill = "none") +
+  theme(axis.title.x = element_text(size = 10),
+        axis.title.y = element_text(size = 10))
+
+p2 <- ggplot(data = y_hcare_points) +
+  annotation_map_tile("osm", zoomin = -1) +
+  geom_sf(aes(col = amenity)) +
+  scale_color_brewer(palette = "Set2") +
+  theme_void()
+
+p <- grid.arrange(p1, p2, nrow = 1)
 ```
+
+# Methodology
+
+## Isochrone calculation
+
+Once the data had been prepared, 20-minute walking time isochrones were able to be calculated around each of the healthcare points. This was carried out using the `opentripplanner::otp_isochrone` function.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE, eval=FALSE}
 # Calculate an isochrone for each row in y_hcare_points and save the results to a new dataframe
@@ -316,7 +338,9 @@ tmap_mode("plot")
 y_hcare_isos <- readRDS("Data/y_hcare_isos.RDS")
 ```
 
-# Make the hex grid
+## Make the hex grid
+
+It was decided
 
 ```{r, echo = FALSE, message=FALSE, warning=FALSE, include=FALSE, eval=FALSE}
 bbox <- st_bbox(y_lad)
@@ -853,6 +877,8 @@ from_to <- as.data.frame(from_to)
 ```
 
 ```{r, eval=TRUE, include=TRUE, echo=FALSE}
+#| label: fig-oa_circuity
+#| fig-cap: Mean circuity of routes to healthcare services in York
 # from_to <- readRDS("Data/from_to.RDS")
 oa_circuity <- readRDS("Data/oa_circuity.RDS")
 ggplot() +
