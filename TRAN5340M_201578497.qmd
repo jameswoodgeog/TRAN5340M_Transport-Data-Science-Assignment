@@ -5,13 +5,13 @@ format:
   pdf:
     pdf-engine: xelatex
 # Include a Table Of Contents
-    toc: true
+    toc: false
 # Include a List Of Figures
-    lof: true
+    lof: false
 # Include a List Of Tables
-    lot: true
+    lot: false
 # Number each headed section
-    number-sections: true
+    number-sections: false
 # Set the main font size and font
     fontsize: 11pt
     mainfont: Calibri
@@ -98,11 +98,11 @@ In this report, I will firstly describe the methods that will be used, and justi
 
 # Area of study
 
-The York LAD was chosen because the of the physical makeup of the city. It sits in the county of North Yorkshire & The Humber, and has a population of around 200,000, of which there is a large student population of around 48,000 [@cityofyorkcouncilOneCityAll], many of which could potentially benefit from cheap and healthy transport options around the city, especially as the main campus of the University of York sits some way outside the centre. Buildings are tightly packed within the walled old center, which is immediately surrounded by decreasingly dense suburban neighbourhoods, and at the periphery by smaller more isolated villages, such as Haxby and Bishopthorpe. This study area should provide a variety of different urban/suburban settings in which analysis can be carried out and compared.
+The York LAD was chosen because the of the physical makeup of the city. It sits in the county of North Yorkshire & The Humber, and has a population of around 200,000, of which there is a large student population of around 48,000 [@cityofyorkcouncilOneCityAll], many of which could potentially benefit from cheap and healthy transport options around the city, especially as the main campus of the University of York sits some way outside the centre. Buildings are tightly packed within the walled old center, which is immediately surrounded by decreasingly dense suburban neighbourhoods, and at the periphery by smaller more isolated towns and villages, such as Haxby and Bishopthorpe. This study area should provide a variety of different urban/suburban settings in which analysis can be carried out and compared.
 
 ## Spatial Scale
 
-The spatial scale for analysis was based upon the smallest or lowest level of geographical area. This is the Output Area (OA), and typically represents between 40-250 households and is made up of around 100-625 people [@officefornationalstatisticsAreaTypeOffice].
+The spatial scale for analysis was based upon the smallest or lowest level of geographical area. This is the Output Area (OA), and typically represents between 40-250 households and is made up of around 100-625 people [@officefornationalstatisticsAreaTypeOffice]. They were chosen because they provide the one of the smallest scales of aggregation that  is available for the UK, and therefore provide a good level of detail for analysis.
 
 # Datasets
 
@@ -130,19 +130,17 @@ saveRDS(y_lad, "Data/y_lad.RDS")
 ```
 
 ```{r, echo=FALSE, eval=FALSE, include=FALSE}
-# This block is commented because the graph that is built here is packaged up and hosted on gitHub.
+# OpenTripPlanner Server setup
+#  SPecify the path to OTP
+path_data <- file.path("Data/OTP")
 
-# # OpenTripPlanner Server setup
-# #  SPecify the path to OTP
-# path_data <- file.path("Data/OTP")
-# 
-# # Get the OTP JAR file
-# path_otp <- otp_dl_jar(path_data, cache = FALSE)
-# 
-# # Build the graph
-# log1 <- otp_build_graph(otp = path_otp,
-#                         dir = path_data,
-#                         memory = 6000)
+# Get the OTP JAR file
+path_otp <- otp_dl_jar(path_data, cache = FALSE)
+
+# Build the graph
+log1 <- otp_build_graph(otp = path_otp,
+                        dir = path_data,
+                        memory = 6000)
 ```
 
 ```{r, echo=FALSE, include=FALSE, eval=FALSE}
@@ -204,13 +202,6 @@ yrk_hcare <- readRDS("Data/yrk_hcare.RDS")
 ```
 
 ```{r, echo=FALSE, include=FALSE, eval=FALSE}
-
-# tmap_mode("view")
-# qtm(yrk_hcare$osm_points) +
-#   qtm(yrk_hcare$osm_polygons) +
-#   qtm(yrk_hcare$osm_multipolygons)
-# tmap_mode("plot")
-
 ########### HEALTHCARE
 ####### POINTS
 # Find which points intersect with the polygons. This creates a dataframe that contains a count
@@ -223,9 +214,6 @@ int1_bool <- lapply(int1, length)==0
 hcare_points <- yrk_hcare$osm_points[int1_bool,]
 remove(int1)
 
-# tmap_mode("view")
-# qtm(hcare_points)
-# tmap_mode("plot")
 # Now the points have been filtered out to leave only those points that do not intersect with a polygon, we need to convert the polygons into points, by calculating centroids for them. These centroids can then be added to the "hcare" points data.
 
 ####### POLYGONS
@@ -264,30 +252,17 @@ y_hcare_points <- bind_rows(
 )
 
 y_hcare_points <- y_hcare_points[!is.na(y_hcare_points$amenity), ]
-
-tmap_mode("view")
-qtm(y_hcare_points)
-tmap_mode("plot")
-# Save y_hcare_points
-
-# saveRDS(y_hcare_points, "Data/y_hcare_points.RDS")
-
-# remove(hcare_query, hcare_vars, int1, mpolys, polys,
-#        hcare_points, yrk_hcare, int1_bool)
 ```
 
 # Exploratory data analysis
 
-The cleaned data was then plotted so that we could make sure that both the numerical counts of the different amenities looked feasible, and also the spatial distribution of them was correctly within the study area. This can be see in @fig-hcare. \FloatBarrier
+The cleaned data was then plotted so that we could make sure that both the numerical counts of the different amenities looked feasible, and also the spatial distribution of them was correctly within the study area. This can be see in @fig-hcare.
 
-```{r fig-hcare, fig.cap="Healthcare services in York", echo=FALSE, message=FALSE}
+\FloatBarrier
+
+```{r fig-hcare, fig.cap="Healthcare services in York", fig.height=2.3, fig.width=5.4, echo=FALSE, message=FALSE}
 y_hcare_points <- readRDS("Data/y_hcare_points.RDS")
-##| label: fig-hcare
-##| fig-cap: Healthcare services in the York study area
-## | fig-asp: 0.618
-## | fig-width: 18
-## | fig-pos: H
-# y_hcare_points <- readRDS("Data/y_hcare_points.RDS")
+
 p1 <- ggplot(y_hcare_points, aes(x = amenity, fill = amenity)) +
   geom_bar() +
   scale_fill_brewer(palette = "Set2") +
@@ -317,9 +292,6 @@ Once the data had been prepared, 20-minute walking time isochrones were calculat
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE, eval=FALSE}
 # Calculate an isochrone for each row in y_hcare_points and save the results to a new dataframe
 
-# y_hcare_points is a data frame with 128 rows
-# num_rows <- min(nrow(y_hcare_points), 128)  # Ensure we don't go beyond the number of rows in y_hcare_points or 128, whichever is smaller
-
 # Create the new dataframe to store the results in
 y_hcare_isos <- data.frame()
 
@@ -346,13 +318,7 @@ y_hcare_isos <- y_hcare_isos |>
 y_hcare_isos <- y_hcare_isos |>
   select(-fromPlace)
 
-# saveRDS(y_hcare_isos, "Data/y_hcare_isos.RDS")
-
-# # Test this to see if it worked
-tmap_mode("view")
-qtm(y_hcare_isos$geometry) +
-  qtm(y_hcare_isos$isochrone, fill = NULL)
-tmap_mode("plot")
+saveRDS(y_hcare_isos, "Data/y_hcare_isos.RDS")
 ```
 
 ```{r, echo=FALSE, include=FALSE, eval=FALSE}
@@ -369,12 +335,8 @@ hex_grid <- st_make_grid(bbox,
                          cellsize = 250,
                          square = FALSE
                          )
-# saveRDS(hex_grid, "Data/hex_grid.RDS")
-# remove(bbox)
-
-# tmap_mode("view")
-# qtm(hex_grid, fill = NULL)
-# tmap_mode("plot")
+saveRDS(hex_grid, "Data/hex_grid.RDS")
+remove(bbox)
 ```
 
 ```{r, include=FALSE, include=FALSE, eval=FALSE, echo=FALSE}
@@ -399,14 +361,6 @@ hex_points <- unique(hex_points)
 # remove(hex_sf, hex_grid)
 saveRDS(hex_centroids, "Data/hex_centroids.RDS")
 saveRDS(hex_points, "Data/hex_points.RDS")
-# remove(hex_centroids, hex_points)
-# All points required have now been produced.
-# Next, clip the points data so that only points that appear within each isochrone remain
-tmap_mode("view")
-qtm(hex_centroids, dots.col = "red") +
-  qtm(hex_points, dots.col = "pink")
-tmap_mode("plot")
-
 ```
 
 ```{r, include=FALSE, eval=FALSE, echo=FALSE}
@@ -416,7 +370,6 @@ hex_points <- readRDS("Data/hex_points.RDS")
 
 ```{r, echo=FALSE, include=FALSE, eval=FALSE}
 # ... Clip the hex points/centroids so that we are left with only the ones that fall within the hcare isochrones 
-
 y_hcare_isos
 y_hcare_isos <- st_transform(y_hcare_isos, 27700)
 y_hcare_isos
@@ -433,12 +386,6 @@ hexpoint_inhcareisos <- st_intersection(hex_points, y_hcare_isos$isochrone)
 saveRDS(hexcents_inhcareisos, "Data/hexcents_inhcareisos.RDS")
 saveRDS(hexpoint_inhcareisos, "Data/hexpoint_inhcareisos.RDS")
 remove(hexcents_inhcareisos, hexpoint_inhcareisos)
-
-tmap_mode("view")
-qtm(hexpoint_inhcareisos, dots.col = "pink") +
-  qtm(hexcents_inhcareisos, dots.col = "red") +
-  qtm(y_hcare_isos$isochrone, fill = NULL)
-tmap_mode("plot")
 ```
 
 ```{r, include=FALSE, echo=FALSE, eval=FALSE}
@@ -475,50 +422,45 @@ hcare_hexcent_routes <- st_sf(geometry = st_sfc(st_point()), crs = 4326)
 # Delete the rows from the newly created object
 hcare_hexcent_routes <- hcare_hexcent_routes[-1, ]
 
-# i=0
-# i=i+1
 # Run through the y_hcare_isos getting the routes to each hcare point from each hex_centroid that appears within that isocrone
 for (i in 1:nrow(y_hcare_isos)) {
   
   y_hcare_isos <- st_set_geometry(y_hcare_isos, "isochrone")
-  # See which hex_cents are in the (i) hcare isochrone
+# See which hex_cents are in the (i) hcare isochrone
   from_hex_cent <- st_intersection(hexcents_inhcareisos, y_hcare_isos[i, ])
-  # Remove duplicate points from from_hex_cent
+# Remove duplicate points from from_hex_cent
   from_hex_cent <- unique(from_hex_cent)
 
-  # Start calculating walking routes data
+# Start calculating walking routes data
   # Set the geometry column of y_hcare_isos
   y_hcare_isos <- st_set_geometry(y_hcare_isos, "geometry")
   y_hcare_isos <- st_transform(y_hcare_isos, 4326)
   
-# j=0
-# j=j+1
-  # Loop through each hex point calculating the walking distance to the y_hcare_isos point
+# Loop through each hex point calculating the walking distance to the y_hcare_isos point
   for (j in 1:nrow(from_hex_cent)) {
-    # get the from place from from_hex_cent
+# get the from place from from_hex_cent
     f <- st_as_sf(from_hex_cent$x[j])
     
-    # get the to place
+# get the to place
     t <- st_as_sf(y_hcare_isos$geometry[i])
     
-    # get the fromID
-    # a <- as.character(from_hex_cent[j,])
+# get the fromID
 # Use tryCatch to handle errors
     tryCatch({
-      # Attempt to calculate the route
+# Attempt to calculate the route
       r <- otp_plan(otpcon = otpcon,
                     fromPlace = f,
                     toPlace = t,
                     mode = "walk",
                     get_geometry = TRUE
                     )
-      # If a route is found, rbind the result to the hcare_hexcent_routes
+# If a route is found, rbind the result to the hcare_hexcent_routes
       m <- cbind(r, f, t)
       hcare_hexcent_routes <- rbind(hcare_hexcent_routes, m)
     }, error = function(e) {
-      # Print error message
+# Print error message
       message("Error occurred: ", conditionMessage(e))
-      # Exit the tryCatch block
+# Exit the tryCatch block
       return(NULL)
     })
     print(paste(j,"of",nrow(from_hex_cent),"done","&",i,"of",nrow(y_hcare_isos), "done"))
@@ -532,17 +474,7 @@ hcare_hexcent_routes <- hcare_hexcent_routes |>
   select(-fromPlace)
 hcare_hexcent_routes <- hcare_hexcent_routes |> 
   select(-toPlace)
-# drop the linestring (geometry) column
-# hcare_hexcent_routes <- st_drop_geometry(hcare_hexcent_routes)
-# hcare_hexcent_routes
-```
-
-```{r, echo=FALSE, eval=FALSE, include=FALSE}
 saveRDS(hcare_hexcent_routes, "Data/hcare_hexcent_routes.RDS")
-```
-
-```{r, eval=FALSE, include=FALSE, echo=FALSE}
-hcare_hexcent_routes <- readRDS("Data/hcare_hexcent_routes.RDS")
 ```
 
 ```{r, echo=FALSE, eval=FALSE, include=FALSE}
@@ -557,15 +489,6 @@ hcare_hexcent_routes <- hcare_hexcent_routes |>
 # Print the modified data frame
 hcare_hexcent_routes[1:5,]
 saveRDS(hcare_hexcent_routes, "Data/hcare_hexcent_routes.RDS")
-
-# tmap_mode("view")
-# qtm(hcare_hexcent_routes$from, dots.col = "green") +
-#   qtm(hcare_hexcent_routes$to, dots.col = "red")
-# tmap_mode("plot")
-```
-
-```{r, eval=FALSE, include=FALSE, echo=FALSE}
-hcare_hexcent_routes <- readRDS("Data/hcare_hexcent_routes.RDS")
 ```
 
 ```{r, eval=FALSE, include=FALSE, echo=FALSE}
@@ -573,41 +496,18 @@ hcare_hexcent_routes <- readRDS("Data/hcare_hexcent_routes.RDS")
 hcare_hexcent_routes <- st_as_sf(hcare_hexcent_routes)
 ```
 
-```{r, eval=FALSE, include=FALSE, echo=FALSE}
-# from_place <- readRDS("Data/from_place.RDS")
-# to_place <- readRDS("Data/to_place.RDS")
-```
-
 ```{r, echo=FALSE, include=FALSE, eval=FALSE}
-##############################################################################################
-# Calculate circuity for each route
-##############################################################################################
-# a <- st_drop_geometry(hcare_hexcent_routes)
-# from_place <- st_transform(from_place, crs = 4326)
-# to_place <- st_transform(to_place, crs = 4326)
-
-# i = 6549
-# i = i + 1
-
 # Initialize a vector to store the distances
 # distances <- numeric(nrow(a))
 hcare_hexcent_routes$circuity <- ""
 # Loop through each row
 for (i in 1:nrow(hcare_hexcent_routes)) {
-  # Print the POINT geometries for debugging
-  # print(hcare_hexcent_routes$from)
-  # print(hcare_hexcent_routes$to)
-  # Calculate euclidean distance
+# Calculate euclidean distance
   e <- as.numeric(st_distance(hcare_hexcent_routes$from[i], hcare_hexcent_routes$to[i]))
   c <- ((hcare_hexcent_routes$walkDistance[i] - e) / hcare_hexcent_routes$walkDistance[i])
   hcare_hexcent_routes[i,34] <- round(c,2)
   print(paste(i,"of",nrow(hcare_hexcent_routes),"done"))
 }
-# if there are negative values, make them 0
-sum(hcare_hexcent_routes$circuity == 0)
- # Assign the distances to a column in dataframe 'a'
-# a$euclidean_distance <- distances
-# c <- as.numeric(drop_na(as.data.frame(st_drop_geometry((as.numeric(a[i,9])) - as.numeric(e)) / st_drop_geometry(as.numeric(a[i,9])))))
 saveRDS(hcare_hexcent_routes, "Data/hcare_hexcent_routes.RDS")
 remove(c,e,f,i,j,m,r,t)
 ```
@@ -629,50 +529,45 @@ hcare_hexpoint_routes <- st_sf(geometry = st_sfc(st_point()), crs = 4326)
 # Delete the rows from the newly created object
 hcare_hexpoint_routes <- hcare_hexpoint_routes[-1, ]
 
-# i=0
-# i=i+1
 # Run through the y_hcare_isos getting the routes to each hcare point from each hex_centroid that appears within that isocrone
 for (i in 1:nrow(y_hcare_isos)) {
   
   y_hcare_isos <- st_set_geometry(y_hcare_isos, "isochrone")
-  # See which hex_cents are in the (i) hcare isochrone
+# See which hex_cents are in the (i) hcare isochrone
   from_hex_point <- st_intersection(hexpoint_inhcareisos, y_hcare_isos[i, ])
-  # Remove duplicate points from from_hex_cent
+# Remove duplicate points from from_hex_cent
   from_hex_point <- unique(from_hex_point)
 
-  # Start calculating walking routes data
-  # Set the geometry column of y_hcare_isos
+# Start calculating walking routes data
+# Set the geometry column of y_hcare_isos
   y_hcare_isos <- st_set_geometry(y_hcare_isos, "geometry")
   y_hcare_isos <- st_transform(y_hcare_isos, 4326)
-  
-# j=0
-# j=j+1
+
 # Loop through each hex point calculating the walking distance to the y_hcare_isos point
   for (j in 1:nrow(from_hex_point)) {
-    # get the from place from from_hex_cent
+# get the from place from from_hex_cent
     f <- st_as_sf(from_hex_point$x[j])
     
-    # get the to place
+# get the to place
     t <- st_as_sf(y_hcare_isos$geometry[i])
     
-    # get the fromID
-    # a <- as.character(from_hex_cent[j,])
+# get the fromID
 # Use tryCatch to handle errors
     tryCatch({
-      # Attempt to calculate the route
+# Attempt to calculate the route
       r <- otp_plan(otpcon = otpcon,
                     fromPlace = f,
                     toPlace = t,
                     mode = "walk",
                     get_geometry = TRUE
                     )
-      # If a route is found, rbind the result to the hcare_hexcent_routes
+# If a route is found, rbind the result to the hcare_hexcent_routes
       m <- cbind(r, f, t)
       hcare_hexpoint_routes <- rbind(hcare_hexpoint_routes, m)
     }, error = function(e) {
-      # Print error message
+# Print error message
       message("Error occurred: ", conditionMessage(e))
-      # Exit the tryCatch block
+# Exit the tryCatch block
       return(NULL)
     })
     print(paste(j,"of",nrow(from_hex_point),"done","&",i,"of",nrow(y_hcare_isos), "done"))
@@ -687,17 +582,7 @@ hcare_hexpoint_routes <- hcare_hexpoint_routes |>
   select(-fromPlace)
 hcare_hexpoint_routes <- hcare_hexpoint_routes |> 
   select(-toPlace)
-# drop the linestring (geometry) column
-# hcare_hexpoint_routes <- st_drop_geometry(hcare_hexpoint_routes)
-# hcare_hexpoint_routes
-```
-
-```{r, echo=FALSE, eval=FALSE, include=FALSE}
 saveRDS(hcare_hexpoint_routes, "Data/hcare_hexpoint_routes.RDS")
-```
-
-```{r, eval=FALSE, include=FALSE, echo=FALSE}
-hcare_hexpoint_routes <- readRDS("Data/hcare_hexpoint_routes.RDS")
 ```
 
 ```{r, echo=FALSE, include=FALSE, eval=FALSE}
@@ -709,68 +594,28 @@ hcare_hexpoint_routes$index <- row.names(hcare_hexpoint_routes)
 hcare_hexpoint_routes <- hcare_hexpoint_routes |>  
   select(index, everything())
 
-# Print the modified data frame
-saveRDS(hcare_hexpoint_routes, "Data/hcare_hexpoint_routes.RDS")
-
-tmap_mode("view")
-qtm(hcare_hexcent_routes$from, dots.col = "green") +
-  qtm(hcare_hexcent_routes$to, dots.col = "red")
-tmap_mode("plot")
-```
-
-```{r, echo=FALSE, include=FALSE, eval=FALSE}
-hcare_hexcent_routes <- readRDS("Data/hcare_hexcent_routes.RDS")
-```
-
-```{r, echo=FALSE, include=FALSE, eval=FALSE}
-# convert hcare_hexcent_routes to sf
 hcare_hexpoint_routes <- st_as_sf(hcare_hexpoint_routes)
+saveRDS(hcare_hexpoint_routes, "Data/hcare_hexpoint_routes.RDS")
 ```
 
 ```{r, echo=FALSE, include=FALSE, eval=FALSE, message=FALSE}
-##############################################################################################
+###########################################################################################
 # Calculate circuity for each route
-##############################################################################################
-# hcare_hexpoint_routes <- st_as_sf(hcare_hexpoint_routes)
-# hcare_hexpoint_routes <- as.data.frame(hcare_hexpoint_routes)
-# i = 0
-# i = i + 1
-
+###########################################################################################
 # Initialize a vector to store the distances
-# distances <- numeric(nrow(a))
 hcare_hexpoint_routes$circuity <- ""
 # Loop through each row
 for (i in 1:nrow(hcare_hexpoint_routes)) {
-  # Print the POINT geometries for debugging
-  # print(hcare_hexcent_routes$from)
-  # print(hcare_hexcent_routes$to)
-  # Calculate euclidean distance
+
+# Calculate euclidean distance
   e <- as.numeric(st_distance(hcare_hexpoint_routes$from[i], hcare_hexpoint_routes$to[i]))
   c <- ((hcare_hexpoint_routes$walkDistance[i] - e) / hcare_hexpoint_routes$walkDistance[i])
   hcare_hexpoint_routes[i,32] <- round(c,2)
   print(paste(i,"of",nrow(hcare_hexpoint_routes),"done"))
 }
-# if there are negative values, make them 0
-# sum(hcare_hexpoint_routes$circuity == 0)
- # Assign the distances to a column in dataframe 'a'
-# a$euclidean_distance <- distances
-# c <- as.numeric(drop_na(as.data.frame(st_drop_geometry((as.numeric(a[i,9])) - as.numeric(e)) / st_drop_geometry(as.numeric(a[i,9])))))
-# Print the modified data frame
 saveRDS(hcare_hexpoint_routes, "Data/hcare_hexpoint_routes.RDS")
-```
-
-```{r, echo=FALSE, include=FALSE, eval=FALSE}
-hcare_hexpoint_routes <- readRDS("Data/hcare_hexpoint_routes.RDS")
-```
-
-```{r, message=FALSE, echo=FALSE, include=FALSE, eval=FALSE}
 # Refresh the environment ready to start work on the amenities
 remove(c, e, f, i, j, m, r, t, y_hcare_isos, y_hcare_points, hexpoint_inhcareisos, from_hex_point, hcare_hexpoint_routes, hcare_hexcent_routes)
-```
-
-```{r, include=FALSE, eval=FALSE, echo=FALSE}
-hcare_hexcent_routes <- readRDS("Data/hcare_hexcent_routes.RDS")
-hcare_hexpoint_routes <- readRDS("Data/hcare_hexpoint_routes.RDS")
 ```
 
 ```{r, include=FALSE, eval=FALSE, echo=FALSE}
@@ -791,15 +636,14 @@ oas <- st_transform(oas, crs = 4326)
 
 ```{r, eval=FALSE, include=FALSE, echo=FALSE}
 oas <- st_as_sf(oas[,c(2, 7)])
-oas
 ```
 
 ```{r, eval=FALSE, include=FALSE, echo=FALSE}
 # Merge the hcare cents and points data into a single dataframe
-hcare_all <- readRDS("Data/hcare_all.RDS")
 hcare_hexcent_routes <- readRDS("Data/hcare_hexcent_routes.RDS")
 hcare_hexpoint_routes <- readRDS("Data/hcare_hexpoint_routes.RDS")
 hcare_all <- rbind(hcare_hexcent_routes, hcare_hexpoint_routes)
+saveRDS(hcare_all, "Data/hcare_all.RDS")
 ```
 
 ```{r, include=FALSE, echo=FALSE, eval=FALSE}
@@ -822,18 +666,9 @@ hcare_all$oa <- vapply(oa_intersects,
                              }
                            },
                            character(1))
-```
 
-```{r, eval=FALSE, include=FALSE, echo=FALSE}
-remove(oa_intersects, y_oas, hcare_hexcent_routes, hcare_hexpoint_routes)
-```
-
-```{r, eval=FALSE, include=FALSE, echo=FALSE}
 saveRDS(hcare_all, "Data/hcare_all.RDS")
-```
-
-```{r, eval=FALSE, include=FALSE, echo=FALSE}
-hcare_all <- readRDS("Data/hcare_all.RDS")
+remove(oa_intersects, y_oas, hcare_hexcent_routes, hcare_hexpoint_routes)
 ```
 
 ```{r, eval=FALSE, include=FALSE, echo=FALSE}
@@ -844,14 +679,10 @@ hcare_all <- as.data.frame(hcare_all)
 # take the "from" and "to" columns and put them in a new dataframe
 from_to <- hcare_all[,c("index", "oa" , "from", "to", "walkDistance", "geometry")]
 from_to <- st_as_sf(from_to)
-from_to
 hcare_all <- st_as_sf(hcare_all)
-hcare_all
-# saveRDS(hcare_all, "Data/hcare_all.RDS")
-```
 
-```{r, eval=FALSE, include=FALSE, echo=FALSE}
 saveRDS(from_to, "Data/from_to.RDS")
+saveRDS(hcare_all, "Data/hcare_all.RDS")
 ```
 
 ```{r, eval=FALSE, include=FALSE, echo=FALSE}
@@ -872,10 +703,6 @@ from_to$e <- as.numeric(from_to$e)
 # Calculate the circuity of each route
 from_to$circuity <- ((from_to$walkDistance - from_to$e)/from_to$walkDistance)
 saveRDS(from_to, "Data/from_to.RDS")
-```
-
-```{r, eval=FALSE, include=FALSE, echo=FALSE}
-from_to <- readRDS("Data/from_to.RDS")
 ```
 
 ```{r, eval=FALSE, include=FALSE, echo=FALSE}
@@ -906,26 +733,28 @@ Output areas were then loaded and the origins that intersect with each were calc
 
 \FloatBarrier
 
-```{r fig-ycircuity, fig.cap="Mean circuity of routes to healthcare services in York", message=FALSE, echo=FALSE}
+```{r fig-ycircuity, fig.cap="Mean circuity of routes to healthcare services in York", fig.width=4, fig.height=3, message=FALSE, echo=FALSE}
 oa_circuity <- readRDS("Data/oa_circuity.RDS")
 ggplot() +
   annotation_map_tile("osm", zoomin = -1) +
   geom_sf(data = oa_circuity,
           aes(fill = mean_circuity),
           color = NA) +
-  scale_fill_viridis_c(alpha = 0.75)
+  theme(axis.text.x = element_text(size = 6),
+        axis.text.y = element_text(size = 6),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 6)) +
+  scale_fill_viridis_c(alpha = 0.75,
+                       name = "Mean Circuity")
 ```
-
-```{=tex}
 \FloatBarrier
-\newpage
-```
+
 
 As we can see in @fig-circ_dist the histogram shows that distribution displays a small right-skew. The box-plot allows us to see this distribution more clearly, with the interquartile range (IQR) between around 0.23 and 3.0, and the median around 0.25. The upper and lower limits are around 0.42 and 0.12 respectively, and outliers at either end. This is a good sign in terms of access to healthcare services as it shows that the majority of the circuity values are relatively low, equating to a fairly low circuity overall in York. I will be concentrating on the outliers mentioned above in order to understand possible reasons for the variation at either end of the spectrum of circuity.
 
 \FloatBarrier
 
-```{r fig-circ_dist, fig.cap="Distribution of mean circuity for York OA's", echo=FALSE}
+```{r fig-circ_dist, fig.cap="Distribution of mean circuity for York OA's", fig.height=2, fig.width=5,echo=FALSE}
 oa_circuity <- readRDS("Data/oa_circuity.RDS")
 
 h <- ggplot(oa_circuity, aes(x = mean_circuity)) + 
@@ -935,7 +764,8 @@ h <- ggplot(oa_circuity, aes(x = mean_circuity)) +
   labs(x = "Mean Circuity", y = "OA Count") +
   theme(axis.title.x = element_text(size = 9),
         axis.title.y = element_text(size = 9),
-        axis.text.x = element_text(size = 7))
+        axis.text.x = element_text(size = 7),
+        axis.text.y = element_text(size = 7))
 
 b <- ggplot(oa_circuity, aes(mean_circuity))
 c <- b + geom_boxplot(notch = T,
@@ -943,8 +773,11 @@ c <- b + geom_boxplot(notch = T,
                       colour = "darkorange",#
                       outlier.colour = "goldenrod4",
                       outlier.shape = 1) +
+  labs(x = "Mean Circuity") +
   theme(axis.text.y = element_blank(),
-        axis.ticks.y = element_blank())
+        axis.ticks.y = element_blank(),
+        axis.title.x = element_text(size = 9),
+        axis.text.x = element_text(size = 7))
 
 eda <- grid.arrange(h, c, nrow = 1)
 ```
@@ -998,9 +831,6 @@ oa_highest_ci <- which.max(oa_circuity$mean_circuity)
 highest_c <- oa_circuity[oa_highest_ci, ]
 highest_c <- as.data.frame(highest_c)
 remove(oa_highest_ci)
-# rename the oa column ready for merging
-# hcare_all <- as.data.frame(hcare_all)
-# hcare_all <- rename(hcare_all, OA21CD = oa)
 
 highest_routes <- merge(highest_c,
                        hcare_all[c("index",
@@ -1040,7 +870,7 @@ saveRDS(highest_routes, "Data/highest_routes")
 
 \FloatBarrier
 
-```{r}
+```{r, echo=FALSE, eval=FALSE, include=FALSE}
 # Join the walkDistance from the from_to to the circl using OA21CD 
 circl <- as.data.frame(circl)
 from_to <- as.data.frame(from_to)
@@ -1048,25 +878,27 @@ circl <- merge(circl, from_to[c("index", "walkDistance")], by = "index", all.x =
 
 circh <- as.data.frame(circh)
 circh <- merge(circh, from_to[c("index", "walkDistance")], by = "index", all.x = TRUE)
-
-
 ```
 
 \FloatBarrier
 
-```{r fig-lowc, fig.cap="OA routes with lowest mean circuity", fig.width=5, fig.height=5, echo=FALSE}
+```{r , fig.cap="OA routes with lowest mean circuity", echo=FALSE}
 circl <- readRDS("Data/circl.RDS")
 circh <- readRDS("Data/circh.RDS")
 lowest_routes <- readRDS("Data/lowest_routes")
 highest_routes <- readRDS("Data/highest_routes")
 y_lad <- readRDS("Data/y_lad_sf.RDS")
+oas <- readRDS("Data/y_oas.RDS")
 
+circl <- st_as_sf(circl)
+circh <- st_as_sf(circh)
+# Producce the York area showing the location of each route group, and a zoomed in version of each route  
 r1 <- ggplot() +
   annotation_map_tile(type = "osm", zoomin = -1) +
-  geom_sf(data = circl, aes(colour = circuity)) +
-  scale_colour_viridis_c(option = "plasma", guide = "none") +
-  geom_sf(data = lowest_routes$from, colour = "green") +
-  geom_sf(data = lowest_routes$to, color = "red") +
+  geom_sf(data = lowest_routes$from, aes(colour = "from"), size = 0.3) +
+  geom_sf(data = lowest_routes$to, aes(color = "to"), size = 0.3) +
+  scale_color_manual(values = c("from" = "blue", "to" = "red")) +
+  labs(color = "Orig'/Dest'") +
   theme(axis.text = element_blank(),
         plot.margin = unit(c(0, 0, 0, 0), "null"),
         plot.caption = element_text(hjust = 0, size = 8),
@@ -1074,35 +906,25 @@ r1 <- ggplot() +
         axis.ticks.y = element_blank()) +
   geom_sf(data = y_lad, fill = NA)
 
-r3 <- ggplot() +
+r2 <- ggplot() +
   annotation_map_tile(type = "osm", zoomin = -1, alpha = 0.5) +
   geom_sf(data = circl, aes(colour = circuity)) +
   scale_colour_viridis_c(option = "plasma") +
-  geom_sf(data = lowest_routes$from, colour = "green") +
-  geom_sf(data = lowest_routes$to, color = "red") +
+  geom_sf(data = lowest_routes$from, colour = "blue", size = 0.3) +
+  geom_sf(data = lowest_routes$to, color = "red", size = 0.3) +
   theme(axis.text = element_blank(),
         plot.margin = unit(c(0, 0, 0, 0), "null"),
         plot.caption = element_text(hjust = 0, size = 8),
         axis.ticks.x = element_blank(),
         axis.ticks.y = element_blank()) +
   labs(caption = "a) OA with lowest circuity")
-```
 
-```{r fig-highc, fig.cap="OA routes with highest mean circuity", fig.width=5, fig.height=5, echo=FALSE}
-circl <- readRDS("Data/circl.RDS")
-circh <- readRDS("Data/circh.RDS")
-lowest_routes <- readRDS("Data/lowest_routes")
-highest_routes <- readRDS("Data/highest_routes")
-y_lad <- readRDS("Data/y_lad_sf.RDS")
-circl <- st_as_sf(circl)
-circh <- st_as_sf(circh)
-
-r2 <- ggplot() +
+r3 <- ggplot() +
   annotation_map_tile(type = "osm", zoomin = -1) +
-  geom_sf(data = circh, aes(colour = circuity)) +
-  scale_colour_viridis_c(option = "plasma", guide = "none") +
-  geom_sf(data = highest_routes$from, colour = "green") +
-  geom_sf(data = highest_routes$to, color = "red") +
+  geom_sf(data = highest_routes$from, aes(colour = "from"), size = 0.3) +
+  geom_sf(data = highest_routes$to, aes(colour = "to"), size = 0.3) +
+  scale_color_manual(values = c("from" = "blue", "to" = "red")) +
+  labs(color = "Orig'/Dest'") +
   theme(axis.text = element_blank(),
         plot.margin = unit(c(0, 0, 0, 0), "null"),
         plot.caption = element_text(size = 8, hjust = 0),
@@ -1114,24 +936,29 @@ r4 <- ggplot() +
   annotation_map_tile(type = "osm", zoomin = -1, alpha = 0.5) +
   geom_sf(data = circh, aes(colour = circuity)) +
   scale_colour_viridis_c(option = "plasma") +
-  geom_sf(data = highest_routes$from, colour = "green") +
-  geom_sf(data = highest_routes$to, color = "red") +
+  geom_sf(data = highest_routes$from, colour = "blue", size = 0.3) +
+  geom_sf(data = highest_routes$to, color = "red", size = 0.3) +
   theme(axis.text = element_blank(),
         plot.margin = unit(c(0, 0, 0, 0), "null"),
         plot.caption = element_text(size = 8, hjust = 0),
         axis.ticks.x = element_blank(),
         axis.ticks.y = element_blank()) +
   labs(caption = "b) OA with highest circuity")
-
 ```
 
-To better understand why these two outlier OAs, and the aggregated route circuity calculations, plots were created to visualise them. @fig-hlroutes clearly shows that the OA with the lowest circuity is in the village of Haxby to the north of York.
+To better understand two most polar outlier OAs, and their route circuity calculations, plots were created to visualise them. @fig-hlroutes shows that the OA with the lowest circuity is in the village of Haxby to the north of the study area. The circuity for this area ranges from 0.06 to 0.14 and can be seen on plot a) to consist of relatively direct routes from the origins (blue) to the services (red). By contrast, the OA with the highest circuity can be found in the north-east of the study area. The circuity for this area ranges from 0.42 to 0.52 and can be seen on plot b) to consist of more circuitous routes from the origins (blue) to the services (red).
 
-```{r fig-hlroutes, fig.cap="OAs with the lowest and highest mean circuity routes", echo = FALSE, message=FALSE}
+\FloatBarrier
+
+```{r fig-hlroutes, fig.cap="OAs with the lowest and highest mean circuity routes", fig.width=7, fig.height=4.2, echo = FALSE, message=FALSE, dpi=1200}
+# Plot the 4 plots as a single image
 r <- grid.arrange(r1, r2, r3, r4, nrow = 2, ncol = 2)
 ```
 
-```{r}
+\FloatBarrier
+
+```{r, echo=FALSE, include=FALSE, eval=FALSE}
+# Create a table showing the mean walking distance for the lowest and highest circuities
 # Determine the length of each data frame
 len_circl <- nrow(circl)
 len_circh <- nrow(circh)
@@ -1149,39 +976,52 @@ combined_table <- combined_table |>
 combined_table <- combined_table |> 
   rename(Highest = circh_walkDistance)
 
-combined_table$Lowest <- mean(combined_table$Lowest, na.rm = TRUE)
-combined_table$Highest <- mean(combined_table$Highest, na.rm = TRUE)
+combined_table$Lowest <- round(mean(combined_table$Lowest, na.rm = TRUE), digits = 1)
+combined_table$Highest <- round(mean(combined_table$Highest, na.rm = TRUE), digits = 1)
 # drop duplicates from combined_table
 combined_table <- unique(combined_table)
-
-
-# Display table using kable
-kable(combined_table, caption = "Mean walk distance comparison", align = "c")
+saveRDS(combined_table, "Data/combined_table.RDS")
 ```
 
+\FloatBarrier
+\
+\
+\
+@tbl-hlc shows that the lowest circuity averaged around 1208 meters, and the highest around 1275 meters. This shows that the walking distances for each route averages to somewhat similar values, however, we can see that the circuity was significantly higher.
+
+```{r tbl-hlc, tab.cap="Mean walk distance comparison", echo=FALSE}
+combined_table <- readRDS("Data/combined_table.RDS")
+# Display table using kable
+kable(combined_table, align = "c", format = "markdown")
+```
 
 \FloatBarrier
 
-# What are the demographics of the best areas?
-
-# What does car ownership look like in these areas?
-
 # Discussion
 
-Rural locations have higher car use and ownership, so planning should put services in the most accessible place
+Having investigated the locations of the two examples above, services in Haxby seem to be located on the main high street of the town. This street consists of a single fairly straight road through the town. By contrast, the OA with the highest circuity was to the north-west of York and is overall more rural, and less densely built up. The location of the service is important to the calculations here, because it sits away from the main street through the village of Stockton on the Forest. This means that the route to the service is longer and more circuitous than it would be if the service was located on the main street. This is a good example of how the location of services can affect the circuity of routes to them. The circuity of routes to services in rural areas is likely to be higher than in urban areas because rural areas are less densely built up, meaning housing is more spread out, meaning that walking to a service takes longer, if indeed the service exists at all.
 
-This circuity implies that the structure of the village is such that services are centered around the high street, which itself consists of a single fairly straight road through the village. By contrast, the OA with the highest circuity was to the north-west of York and is overall more rural, and is less densely built up. The location of the service is important to the calculations here, because it sits away from the main street through the village of Stockton on the Forest. This means that the route to the service is longer and more circuitous than it would be if the service was located on the main street.
+Transport and travel in rural locations is often defined through a lack of availability as opposed to what options exist. This could be termed as forced car ownership through what can be described as transport poverty [@milneUrbanUMaaSRural2024]. This fact hints at the importance of both the availability of, and the access to, services such as healthcare in more rural areas. If people are more likely to own a car, and they do not have sufficient access to services, they are more likely to have to drive to the required service. This inevitably impacts on the persons health, through decreasing the frequency that shorter trips are taken by walking, and increases vehicle use, which negatively impacts the environment by increasing air pollution.
 
-In retrospect i could have not used isochrones to calculate route circuity. I should have used all hexpoints and then aggregated over OAs because the way I did it means that some OAs that may only have a single amenity at the edge may sit outside the isochrone. I could have taken the travel time as an average. However, this would have resulted in routes to all amenities, so using a route to the closest amenity was the most practical way of measuring the access
+# Policy
+
+With regards to policy
+
+# Limitations
+
+This study would have benefited from a number of additions or changes to the method, however, some were omitted due to the lack of laptop processing power available. One example would have been to include extracts from the OpenStreetMap data of other types of services and amenities, such as essential shops like grocery stores and schools. If it was possible to calculate routes for all of this additional data, a more comprehensive approach would have been taken, and the results more representative of the real world. It would also have allowed for a comparative piece of work to look at peoples access to different types of service/amenity, and could have shed light on how to build them into the neighbourhood.
+
+Another possible change would have been to use Output Area Population Weighted Centroids as the origin points. This would have meant that routes were calculated from places where people were located rather than, as with the method chosen, random but equally distributed points across the study area, and within the isochrones defined. It may have allowed for all routes to have been calculated and subsequently delimited by the isochrone, and would have allowed for a measure of whether populations had access to amenities/services in the first instance, and in addition, how easily they could be accessed through circuity measurements. This may have produced very different and more useful results than those found in the method used.
 
 Make sure to point out limitations of the method Could have used a crossings file to make routes shorter for people etc.
 
 Also there are other factors like crossings that could shorten routes
 
-Could have used population density measure to weiight circuity
+Could have used population density measure to weight circuity
 
-\
-\
+
+# Conclusion
+
 
 # References
 
