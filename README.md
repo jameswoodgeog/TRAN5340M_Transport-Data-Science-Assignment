@@ -1,0 +1,1 @@
+This is a study of circuity in York, England and usees the OpenTripPlanner package in R to calculate routes from origins to healthcare services destinations and was completed for the University of Leeds Transport Data Science MSc module (TRAN5340M).
