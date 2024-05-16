@@ -5,13 +5,13 @@ format:
   pdf:
     pdf-engine: xelatex
 # Include a Table Of Contents
-    toc: false
+    toc: true
 # Include a List Of Figures
     lof: false
 # Include a List Of Tables
     lot: false
 # Number each headed section
-    number-sections: false
+    number-sections: true
 # Set the main font size and font
     fontsize: 11pt
     mainfont: Calibri
@@ -78,6 +78,7 @@ library(gridExtra)
 library(knitr)
 ```
 
+\newpage
 # Introduction
 
 Carlos Moreno first proposed the 15-minute city concept in 2016. The focus of the concept is that access to essential services and amenities, such as healthcare and greenspace should be within a 15-minute walk or cycle from a persons home [@morenoIntroducing15MinuteCity2021]. The COVID-19 pandemic then highlighted the importance of local access to essential services, because lockdowns and other restrictions on movement limited the ability to travel beyond ones immediate neighbourhood. The 15-minute city concept has gained traction more recently within the disciplines of urban planning and sustainable development. It also provided a new perspective on "chrono-urbanism", in which there is an inversely proportional relationship between peoples quality of life and the time people invest in transportation and is especially true in the use of motor vehicles [@loganXminuteCityMeasuring2022].
@@ -102,7 +103,7 @@ The York LAD was chosen because the of the physical makeup of the city. It sits 
 
 ## Spatial Scale
 
-The spatial scale for analysis was based upon the smallest or lowest level of geographical area. This is the Output Area (OA), and typically represents between 40-250 households and is made up of around 100-625 people [@officefornationalstatisticsAreaTypeOffice]. They were chosen because they provide the one of the smallest scales of aggregation that  is available for the UK, and therefore provide a good level of detail for analysis.
+The spatial scale for analysis was based upon the smallest or lowest level of geographical area. This is the Output Area (OA), and typically represents between 40-250 households and is made up of around 100-625 people [@officefornationalstatisticsAreaTypeOffice]. They were chosen because they provide the one of the smallest scales of aggregation that is available for the UK, and therefore provide a good level of detail for analysis.
 
 # Datasets
 
@@ -256,12 +257,13 @@ y_hcare_points <- y_hcare_points[!is.na(y_hcare_points$amenity), ]
 
 # Exploratory data analysis
 
-The cleaned data was then plotted so that we could make sure that both the numerical counts of the different amenities looked feasible, and also the spatial distribution of them was correctly within the study area. This can be see in @fig-hcare.
+The cleaned data was then plotted so that we could make sure that both the numerical counts of the different amenities looked feasible, and also the spatial distribution of them was correctly within the study area. This can be seen in @fig-hcare.
 
 \FloatBarrier
 
-```{r fig-hcare, fig.cap="Healthcare services in York", fig.height=2.3, fig.width=5.4, echo=FALSE, message=FALSE}
+```{r fig-hcare, fig.cap="Healthcare services in York", fig.height=4.6, fig.width=10.8, echo=FALSE, message=FALSE}
 y_hcare_points <- readRDS("Data/y_hcare_points.RDS")
+y_lad <- readRDS("Data/y_lad_sf.RDS")
 
 p1 <- ggplot(y_hcare_points, aes(x = amenity, fill = amenity)) +
   geom_bar() +
@@ -273,8 +275,10 @@ p1 <- ggplot(y_hcare_points, aes(x = amenity, fill = amenity)) +
         axis.text.x = element_text(size = 7))
 
 p2 <- ggplot(data = y_hcare_points) +
+  geom_sf(data = y_lad$geometry) +
   annotation_map_tile("osm", zoomin = -1) +
   geom_sf(aes(col = amenity)) +
+  scale_shape_binned(aes(shape = 18)) +
   scale_color_brewer(palette = "Set2") +
   theme_void()
 
@@ -747,8 +751,8 @@ ggplot() +
   scale_fill_viridis_c(alpha = 0.75,
                        name = "Mean Circuity")
 ```
-\FloatBarrier
 
+\FloatBarrier
 
 As we can see in @fig-circ_dist the histogram shows that distribution displays a small right-skew. The box-plot allows us to see this distribution more clearly, with the interquartile range (IQR) between around 0.23 and 3.0, and the median around 0.25. The upper and lower limits are around 0.42 and 0.12 respectively, and outliers at either end. This is a good sign in terms of access to healthcare services as it shows that the majority of the circuity values are relatively low, equating to a fairly low circuity overall in York. I will be concentrating on the outliers mentioned above in order to understand possible reasons for the variation at either end of the spectrum of circuity.
 
@@ -984,6 +988,7 @@ saveRDS(combined_table, "Data/combined_table.RDS")
 ```
 
 \FloatBarrier
+
 \
 \
 \
@@ -1005,27 +1010,29 @@ Transport and travel in rural locations is often defined through a lack of avail
 
 # Policy
 
-With regards to policy
+With regards to policy, the results of this study could be used to inform the location of services in the future. By understanding the circuity of routes to services, it is possible to understand how easy it is for people to access them. It could also be used to inform the potential to relocating existing services, to ensure that they can be accessed easily. This could be particularly important in rural areas, where the circuity of routes to services is likely to be higher than in urban areas. The study of travel mode choice and in particular the routes that people take is vital when trying to promote more sustainable travel options [@costaCircuityTemporalAnalysis2021].
+
+Access to healthcare, particularly in rapidly ageing populations is vital, and this study could start to help in deciding where to focus interventions. Similar studies such as @poudyalCharacterizingNetworkCircuity2023 highlight the importance of networks in this area and show how this type of work can influence the design of infrastructure to facilitate more direct access routes to healthcare. As @nicolettiDisadvantagedCommunitiesHave2023 points out, disadvantaged communities such as lower income neighbourhoods in more rural locations have lower access to urban infrastructure such as healthcare services. This study could be expanded to include measures of deprivation, which is another factor leading to poorer health outcomes, which could help to further focus policy makers looking to make changes to improve equitable access to healthcare, and improve health transit through communities.
 
 # Limitations
 
-This study would have benefited from a number of additions or changes to the method, however, some were omitted due to the lack of laptop processing power available. One example would have been to include extracts from the OpenStreetMap data of other types of services and amenities, such as essential shops like grocery stores and schools. If it was possible to calculate routes for all of this additional data, a more comprehensive approach would have been taken, and the results more representative of the real world. It would also have allowed for a comparative piece of work to look at peoples access to different types of service/amenity, and could have shed light on how to build them into the neighbourhood.
+This study would have benefited from a number of additions or changes to the method, however, some were omitted due to the lack of laptop processing power available. With hindsight, it would have useful to incorporate pedestrian crossings nodes into the graph and may have had an impact on route circuity. Another example would have been to include extracts from the OpenStreetMap data of other types of services and amenities, such as essential shops like grocery stores and schools. If it was possible to calculate routes for all of this additional data, a more comprehensive approach would have been taken, and the results more representative of the real world. It would also have allowed for a comparative piece of work to look at peoples access to different types of service/amenity, and could have shed light on how to build them into the neighbourhood.
 
 Another possible change would have been to use Output Area Population Weighted Centroids as the origin points. This would have meant that routes were calculated from places where people were located rather than, as with the method chosen, random but equally distributed points across the study area, and within the isochrones defined. It may have allowed for all routes to have been calculated and subsequently delimited by the isochrone, and would have allowed for a measure of whether populations had access to amenities/services in the first instance, and in addition, how easily they could be accessed through circuity measurements. This may have produced very different and more useful results than those found in the method used.
 
-Make sure to point out limitations of the method Could have used a crossings file to make routes shorter for people etc.
-
-Also there are other factors like crossings that could shorten routes
-
-Could have used population density measure to weight circuity
-
-
 # Conclusion
 
+To conclude, this study has successfully highlighted the differences in access to healthcare services between rural and ore urban environments. By using using York as a study area, pedestrian route circuity measurements from origin to healthcare service destination points and calculating circuity, shows that more rural locations display routes that have higher circuity than more urban areas. Although the example of Haxby shown in the study is a fairly large village/small town, it demonstrates how low circuity can be designed in relation to access to services. Contrast this with the second example, where the services were situated away from the main thoroughfare, circuity increased. As discussed, this is important when looking at trying to provide easily accessible services, but also services that do not require motorised transport to obtain access to them. Although the study was very limited by various factors, it shows how even a simple study can highlight issues around access to services and sustainability goals linked to this access. Policy that links access to services, route choice and sustainability, as we continue to aim for a healthier more equitable society over the coming years will be vital.
 
+\newpage
 # References
 
 ::: {#refs}
 :::
 
+\newpage
 # Appendix {.appendix}
+
+Access to the full code and data can be found on Github [here](https://github.com/jameswoodgeog/TRAN5340M_Transport-Data-Science-Assignment).
+
+Word count: 2826
